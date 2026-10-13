@@ -1,0 +1,14 @@
+# local config and generated files
+paths_local.py
+drop/
+reports/
+fonts/
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+.DS_Store
+*.tmp
+
+# big or third-party data: download it, don't commit it
+hot-100-current.csv
+MM2026_wk*.xlsx
