@@ -1,6 +1,7 @@
 # Week 40 · Cowbell
 
-![dashboard](screenshots/cowbell.png)
+<img width="1698" height="3568" alt="Cowbell" src="https://github.com/user-attachments/assets/20f25e0e-55ce-49cd-8083-0a7c924202d7" />
+
 
 **Tableau Public:** https://public.tableau.com/views/Cowbell/Cowbell
 
