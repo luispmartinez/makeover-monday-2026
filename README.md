@@ -4,4 +4,4 @@ Weekly Tableau Public dashboards built with a Python pipeline: Python decides, T
 
 | Week | Topic | Dashboard |
 |---|---|---|
-| 40 | [Cowbell](wk40-cowbell) | link soon |
+| 40 | [Cowbell](wk40-cowbell) | [link](https://public.tableau.com/views/Cowbell/Cowbell) |
