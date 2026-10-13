@@ -2,7 +2,7 @@
 
 ![dashboard](screenshots/cowbell.png)
 
-**Tableau Public:** (https://public.tableau.com/views/Cowbell/Cowbell?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+**Tableau Public:** https://public.tableau.com/views/Cowbell/Cowbell
 
 A crowd-sourced list of 655 "cowbell" songs for Makeover Monday 2026 week 40, joined to the
 Billboard Hot 100 to ask one question: did the songs people remember for cowbell chart?
