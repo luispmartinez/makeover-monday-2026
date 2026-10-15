@@ -151,7 +151,6 @@ assert (cro < even).sum() == 8                        # eight quiet months, belo
 assert cro[cro < even].max() <  6                   # and they stay well clear of the shoulders
 lux = monthly_out.loc[monthly_out["geo"] == "Luxembourg", "share_pct"]
 assert lux.max() < 1.5 * even                            # "evenly lit": no month above 1.5x an even share
-print(cro[cro < even].round(1).to_dict())
 
 frame = pd.DataFrame({"x_px": [0, CANVAS_W], "y_px": [0, CANVAS_H]})
 frame["layer"], frame["point_order"] = "frame", 1
@@ -194,7 +193,6 @@ assert (NAME_RIGHT - names.apply(lambda r: tb_w(r["geo"], r["is_anchor"]), axis=
 print(canvas.loc[canvas["layer"] == "cell", "lon"].max())
 assert (canvas["layer"] == "note").sum() == 3       # one note per country
 assert (NOTE_X + notes["text"].map(tb_w)).max() <= CANVAS_W - 24     # note's right edge inside the margin
-assert (NAME_RIGHT - names.apply(lambda r: tb_w(r["geo"], r["is_anchor"]), axis=1)).min() >= 0
 
 # 10 Export to CSV
 COLS = ["layer", "geo", "poly_id", "point_order", "month_num", "text", "is_anchor",
