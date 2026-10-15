@@ -33,10 +33,9 @@ custom fonts unreliably; only dots, labels and tooltips are Tableau marks.
 
 ## Decisions
 
-<!-- Write these in your own words. Suggested headings: -->
 - **Matching.** Keys ignore case, punctuation, a leading "The", and treat "&" as "and". Hand-reviewed overrides live in `lookups/` (title mismatches and credit variants). Every override was checked against MusicBrainz.
 - **Left as submitted:** the "The" prefix on artist names, and Funkadelic / Parliament Funkadelic.
-- **No genre column.** <!-- your reason -->
+- **No genre column.** Genre labels are inconsistent across sources, and some categories have tracked the artist's race more than the sound, so I left genre out.
 - **Bottom group is picked for hits,** so its hit rate is not comparable to the top group.
 
 ## Reproduce
@@ -58,6 +57,6 @@ To run stage 3 only, use the committed `cowbell_stage2.csv` and skip the downloa
 
 ## Credits
 
-- Makeover Monday, Andy Kriebel, Next Level Tableau.
+- Makeover Monday
 - Billboard Hot 100 history: [utdata/rwd-billboard-data](https://github.com/utdata/rwd-billboard-data), CC BY.
 - Fonts: Anton, Barlow Condensed, Open Sans (SIL Open Font License).
