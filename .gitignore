@@ -12,3 +12,5 @@ __pycache__/
 # big or third-party data: download it, don't commit it
 hot-100-current.csv
 MM2026_wk*.xlsx
+*.xlsx
+tourism_2025_long.csv
