@@ -14,3 +14,9 @@ hot-100-current.csv
 MM2026_wk*.xlsx
 *.xlsx
 tourism_2025_long.csv
+title_glyphs.py
+measure.py
+hhs_geom_calcs.py
+paths_local.py
+raw/
+fonts/
