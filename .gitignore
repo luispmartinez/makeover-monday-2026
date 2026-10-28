@@ -20,3 +20,13 @@ hhs_geom_calcs.py
 paths_local.py
 raw/
 fonts/
+
+drop/
+
+drop/
+
+notes/
+preview*.png
+__pycache__/
+
+wk42-us-pop/build_us_pop_canvas.py
