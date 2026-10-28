@@ -30,3 +30,5 @@ preview*.png
 __pycache__/
 
 wk42-us-pop/build_us_pop_canvas.py
+
+TIMELOG.md

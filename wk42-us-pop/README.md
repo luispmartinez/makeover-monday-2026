@@ -2,7 +2,9 @@
 
 Makeover Monday 2026, week 42. Two views of the same 51 bars, one switch.
 
-**Poster:** [Tableau Public](ADD-LINK-HERE)
+<a href="https://public.tableau.com/app/profile/luis.pablo6724/viz/USPOP1790_1990/USPop1790-1990"><img src="screenshots/wk42-us-pop.png" alt="Fast isn't big. Big isn't fast. US state population by census, 1790 to 1990: each state's peak growth and peak share of the US" width="480"></a>
+
+**Poster:** [Tableau Public](https://public.tableau.com/app/profile/luis.pablo6724/viz/USPOP1790_1990/USPop1790-1990), with a switch between the two views.
 
 ## What it shows
 
