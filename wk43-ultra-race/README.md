@@ -12,7 +12,7 @@ Each nation runs its own race: a new yard (4.167 miles) every hour, until one ru
 
 - **The pack.** In the typical nation-race, half of the pack reached 60% of the winner's distance. 179 nation-races, each drawn as a step line of the share of the pack still running. The winner runs 1.67x the median pack runner. Australia 2026 is the tightest pack (the median runner reached 84% of the winner's distance). Pakistan 2022 is the breakaway (50 and 49 yards, then 29, with a pack median of 24%).
 - **The nations that kept coming back.** 18 nations scored yards in all four editions. Their mean team yards rose from 420 in 2020 to 715 in 2026, up 70%. The United States is highest in 2026 at 1,120.
-- **Two facts from the format.** The winner is always exactly one yard past the runner-up (192 of 192). The longest nation race ran 124 hours, 5 days and 4 hours.
+- **Two facts from the format.** In every nation-race with a winner, the winner is exactly one yard past the runner-up (179 of 179). The longest 2026 nation race ran 124 hours, 5 days and 4 hours.
 
 ## How the numbers are made
 
@@ -30,7 +30,7 @@ Definitions:
 - **Constant nations** scored yards in all four editions (2020, 2022, 2024, 2026).
 - 179 of 190 nation-years had a winner. The other 11: 6 ended in a tie (the last runners stopped on the same yard), 4 did not start, 1 was cancelled. Six teams with fewer than 12 runners are included.
 
-Every number in large type is asserted in the script: the 179 races, the 60% landmark (computed two ways), 420 and 715, the 18 nations, the one-yard gap, 124 hours.
+Every number in large type is asserted in the script: the 179 races, the 60% landmark (computed two ways), 420 and 715, the 18 nations, the one-yard gap (179 of 179), 124 hours (the longest 2026 run).
 
 ## Run it
 
