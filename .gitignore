@@ -36,3 +36,5 @@ TIMELOG.md
 toolkit/
 
 scan_and_profile.py
+
+wk43-ultra-race/build_ultra_race_canvas.py
