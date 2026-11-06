@@ -26,7 +26,7 @@ Each panel carries a fit line with a shaded 95% confidence band for the average.
 ## What the dashboard shows
 
 - Four panels, one per measure. Each dot is a country: weekly AI use for learning (% of students) on the x axis, mean score on the y axis.
-- Gold dots mark the six OECD countries flagged for sampling caution.
+- Gold dots mark the six countries and economies the OECD flagged for sampling caution: Canada, the Netherlands, New Zealand, Norway and the United States (all OECD members), plus Albania (a partner, not a member).
 - Click a dot to open that country's card: AI use, the four scores, change since 2022, top and low performer shares, digital capacity index, subject device guidelines, and phones not allowed in school. Close it with the Close button, or click empty space.
 - Hover a dot or the band for a tooltip.
 
@@ -59,8 +59,8 @@ Measured on the published page with the browser's network panel (Tableau Public,
 |---|---|
 | Click (open or close the card) | median 3.6 s, range 2.7 to 7.7 s |
 | After-click state refresh | 0.13 to 0.2 s |
-| First draw | [not captured] |
-| Hover tooltip | [not captured] |
+
+First draw and hover were not measured.
 
 The card carries about 56,000 polygon rows, and every click re-queries it, so interactions are slower than a typical Tableau Public dashboard (an earlier, lighter build, Brazil, took 1.2 to 1.55 s per click).
 
