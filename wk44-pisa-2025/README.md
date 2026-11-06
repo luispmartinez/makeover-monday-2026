@@ -43,7 +43,7 @@ OECD (2026), *PISA 2025 Results (Volume I): Future-Ready Students*, PISA, OECD P
 
 CC BY 4.0. This is an adaptation of an original work by the OECD. Independent analysis, not an OECD product.
 
-The source workbook is not committed to this repo. To rebuild, get the tables from the report above, save them as `raw/PISA2025.xlsx`, and run `build_pisa_canvas.py`. The Tableau workbook can be downloaded from the [Tableau Public page](https://public.tableau.com/app/profile/luis.pablo6724/viz/PISA2025AIUse/AIUseVsPISAScores).
+The source workbook is not committed to this repo. To rebuild, get the tables from the report above, save them as `drop/PISA2025.xlsx` (sheets `About` and `PISA2025-Data`), then run `explore_pisa_2025.py` followed by `build_pisa_canvas.py`. Both import shared code from `../toolkit/`, the canvas script also needs the fonts in `../toolkit/fonts/`, and both write to `~/TableauData/wk44-pisa-2025/`. The Tableau workbook can be downloaded from the [Tableau Public page](https://public.tableau.com/app/profile/luis.pablo6724/viz/PISA2025AIUse/AIUseVsPISAScores).
 
 Tableau Public extracted the data at publish time, so the live dashboard does not update if the source changes. Any fix needs a republish.
 
