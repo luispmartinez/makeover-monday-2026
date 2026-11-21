@@ -24,11 +24,13 @@ def blend(fg_hex, bg_hex, alpha):
         b = int(bg_hex[i:i + 2], 16)
         out += f"{round((alpha * f) + (b * (1 - alpha))):02X}"
     return out
-        
-W, H_PX = 1300, 805
+
+
+       
+W, H_PX = 1387, 857
 DEG_PX  = 40   
 MARGIN, GAP = 40, 40    
-HEADER_H, FOOTER_H = 215, 50
+HEADER_H, FOOTER_H = 267, 50
 PALETTE = {"lit balloon": "D4AF37", "dim balloon": "55555E", "medal 1": "D4AF37", "medal 2": "B8BCC6", "medal 3": "B8733A",
            "medal rank 1": "F2D27A", "medal rank 2": "E3E5EA", "medal rank 3": "E0A06A", "unmedaled fill": "3A3A40", "unmedaled rank": "8C8C94",
            "place name rank 1": "F2D27A", "place name": "F5F5F2", "others": "F5F5F2", 
@@ -42,6 +44,7 @@ PALETTE = {"lit balloon": "D4AF37", "dim balloon": "55555E", "medal 1": "D4AF37"
 assert blend("D4AF37", "0B0B0D", 1) == "D4AF37"
 assert blend("D4AF37", "0B0B0D", 0) == "0B0B0D"
 assert blend("D4AF37", "0B0B0D", 0.55) == "7A6524"
+assert blend("D4AF37", "0B0B0D", 0.4) == "5B4D1E"
 
 PAGE = PALETTE["page"]
 STACK = [                                   # back to front: (element, hex)
@@ -71,8 +74,11 @@ STACK = [                                   # back to front: (element, hex)
     ("card_close",   "F2D27D"),   # F2D27D - literal nudge
     ("card_label",   "D4AF33"),   # gold labels: its own nudge, because the body sits between them and the border
     ("card_small",   PALETTE["card small"]),   # small grey line
-    ("card_value",   "F5F5F3"),   # F5F5F3 - literal nudge
+    ("strip_note",  PALETTE["notes"]),   # shares B9B6AA with card small, it follows card small
+    ("card_value",   "F5F5F3"),   # F5F5F3 - literal nudge,
+    ("strip_label", "F2D27E"),   # strip label and click text: F2D27A nudged, shared by both
 ]
+HEX = dict(STACK)
 Z = {name: len(STACK) - i for i, (name, hex_) in enumerate(STACK)}
 print(Z["fan_gold"], Z["name_other"])
 
@@ -95,6 +101,8 @@ BARLOW_FILE = TOOLKIT / "fonts" / "BarlowCondensed-Medium.ttf"
 for f in (FONT_FILE, BARLOW_FILE):
     assert f.exists(), f"font missing: {f}"
 
+
+
 # 1  LAYOUT: vertical, descending order. jet stream of real balloons. one dot per real balloon. dim means not seen. yellow means seen.
 
 BODY_TOP, BODY_BOTTOM = HEADER_H, H_PX - FOOTER_H
@@ -113,13 +121,13 @@ assert round(BALLOON_MAX_W, 2) == 27.14
 
 
 
-LABEL_W, STREAM_W, COL_GAP, CARD_W = 252, 640, 16, 228
+LABEL_W, ZONE_W, STREAM_W, COL_GAP, CARD_W = 252, 171, 640, 16, 228
 INNER_W = W - 2 * MARGIN
-assert LABEL_W + STREAM_W + COL_GAP + CARD_W <= INNER_W
+assert LABEL_W + ZONE_W + STREAM_W + COL_GAP + CARD_W <= INNER_W
 LABEL_X0  = MARGIN
-STREAM_X0 = LABEL_X0 + LABEL_W
+STREAM_X0 = LABEL_X0 + LABEL_W + ZONE_W
 CARD_X0   = STREAM_X0 + STREAM_W + COL_GAP
-assert CARD_X0 + CARD_W <= W - MARGIN
+assert CARD_X0 + CARD_W == W - MARGIN
 
 STREAM_PAD = 1            # px of air above and below the stream inside its row
 TINY_W = 4
@@ -140,12 +148,13 @@ FOOT_PX, FOOT_LEAD, FOOT_TOP_PAD = 12, 16, 10
 
 # 2  HELPERS: reuse from build_us_pop_canvas.py until glyph_helpers.py exists
 rows = []                                  # every helper appends dicts here; one DataFrame at the end
-LAYERS = ("back", "grid", "band", "data", "text", "cardframe", "cardname", "closebtn")           # section 2, in the `line` helper's allowed set
+LAYERS = ("back", "grid", "band", "data", "text", "cardframe", "cardname", "closebtn", "strip")
 
 def line(key, xs, ys, layer, **cols):
     """Any polygon or path: one row per vertex. poly_id = key; point_order counts from 1."""
     assert layer in LAYERS, f"{key}: unknown layer {layer!r}"
     assert len(xs) == len(ys) >= 1
+    cols.setdefault("click", "none")
     for order, (x, y) in enumerate(zip(xs, ys), start=1):
         rows.append(dict(layer=layer, poly_id=key, point_order=order, x_px=x, y_px=y, **cols))
 
@@ -241,8 +250,37 @@ KICKER_BASE = 40 + 19 * BARLOW.cap
 TITLE_BASE  = KICKER_BASE + 24 + TITLE_PX * SHRIKHAND.cap
 SUB_BASE    = TITLE_BASE + SHADOW + 24 + 24 * BARLOW.cap
 assert SUB_BASE + 6 < HEADER_H                       # the subtitle's descenders stay above the first panel row
+print(SUB_BASE, HEADER_H, HEADER_H - SUB_BASE)
+print(BARLOW.width(SUBTITLE, 24), W - 2 * MARGIN)
+BTN_H = 44
+FREE_TOP, FREE_BOTTOM = SUB_BASE + 6, HEADER_H
+BTN_AIR = (FREE_BOTTOM - FREE_TOP - BTN_H) / 2     # equal air above and below
+STRIP_TOP = FREE_TOP + BTN_AIR
+STRIP_BOTTOM = STRIP_TOP + BTN_H
+assert STRIP_BOTTOM + BTN_AIR == FREE_BOTTOM
+print(STRIP_TOP, STRIP_BOTTOM, BTN_AIR)
 
+BTN_PX, BTN_PAD, BTN_GAP = 15, 20, 10
+BTN_TEXTS = ["Number of balloons", "Share seen in person"]
+btn_w = [BARLOW.width(t, BTN_PX) + 2 * BTN_PAD for t in BTN_TEXTS]
+print(btn_w)
 
+STRIP_LABEL = "SORT AND SIZE BY"
+STRIP_LABEL_PX, STRIP_LABEL_TRACK = 13, 2.34          # 0.18em at 13px, in px like KICK_TRACK
+strip_label_w = BARLOW.width(STRIP_LABEL, STRIP_LABEL_PX, STRIP_LABEL_TRACK)
+BTN1_X0 = MARGIN + strip_label_w + 16
+BTN2_X0 = BTN1_X0 + btn_w[0] + BTN_GAP
+NOTE_X0 = BTN2_X0 + btn_w[1] + 16
+print(strip_label_w, BTN1_X0, BTN2_X0, NOTE_X0, W - MARGIN - NOTE_X0)
+
+NOTES = {"count": "Biggest fleets first. The stream and the big balloon follow the count; medals go by rank.",
+         "pct":   "Highest share seen first. The big balloon follows the share; medals mark tiers whose gaps are wider than chance."}
+CLICK = "Click a balloon to see why"
+NOTE_PX = 14
+note_w = {mode: BARLOW.width(text, NOTE_PX) for mode, text in NOTES.items()}
+click_w = BARLOW.width(CLICK, NOTE_PX)
+room = W - MARGIN - NOTE_X0 - click_w - 16
+print(note_w, click_w, room)
 
 
 KICK_TRACK = 1.5
@@ -357,6 +395,90 @@ assert sp.layer.eq("back").all()
 assert sp.y_px.between(0, HEADER_H).all()
 chk = pd.DataFrame(rows)
 
+STRIP_MID = STRIP_TOP + BTN_H / 2
+label_base = STRIP_MID + STRIP_LABEL_PX * BARLOW.cap / 2
+for mode in ("count", "pct"):
+    glyph_rows(BARLOW, f"strip_label_{mode}", STRIP_LABEL, MARGIN, label_base, STRIP_LABEL_PX, "strip",
+               tracking=STRIP_LABEL_TRACK, color=HEX["strip_label"], mode=mode, view=mode, when="always")
+
+lab = pd.DataFrame(rows)
+lab = lab[lab.poly_id.str.contains("strip_label")]
+assert len(lab) > 0
+assert lab.view.nunique() == 2
+assert lab["view"].eq(lab["mode"]).all()
+assert lab.x_px.between(MARGIN, BTN1_X0 - 16).all()
+assert lab.y_px.between(STRIP_TOP, STRIP_BOTTOM).all()
+print(len(lab))
+print(lab.groupby("view").size())
+
+BUTTONS = [("count", BTN_TEXTS[0], BTN1_X0, btn_w[0]),
+           ("pct",   BTN_TEXTS[1], BTN2_X0, btn_w[1])]
+btn_base = STRIP_MID + BTN_PX * BARLOW.cap / 2
+
+note_base = STRIP_MID + NOTE_PX * BARLOW.cap / 2
+for mode, text in NOTES.items():
+    glyph_rows(BARLOW, f"strip_note_{mode}", text, NOTE_X0, note_base, NOTE_PX, "strip",
+               color=HEX["strip_note"], mode= mode, view=mode, when="always")
+
+nt = pd.DataFrame(rows)
+nt = nt[nt.poly_id.str.contains("strip_note")]
+assert nt.view.nunique() == 2
+assert nt.x_px.between(NOTE_X0, W - MARGIN - click_w - 16).all()
+print(nt.groupby("view").size())
+
+for mode in ("count", "pct"):
+    glyph_rows(BARLOW, f"strip_click_{mode}", CLICK, W - MARGIN, note_base, NOTE_PX, "strip",
+               align="right", color=HEX["strip_label"], mode=mode, view=mode, when="none")
+
+ck = pd.DataFrame(rows)
+ck = ck[ck.poly_id.str.contains("strip_click")]
+assert len(ck) > 0
+assert ck["view"].nunique() == 2
+assert ck["view"].eq(ck["mode"]).all()
+assert ck.x_px.between(W - MARGIN - click_w, W - MARGIN).all()
+print(ck.groupby("view").size())
+
+for mode, label, x0, w in BUTTONS:
+    rect(f"strip_btn_{mode}_active", x0, STRIP_TOP, x0 + w, STRIP_BOTTOM, "strip",
+         color=HEX["btn_active_fill"], mode=mode, view=mode, when="always")
+    glyph_rows(BARLOW, f"strip_btn_{mode}_active_text", label, x0 + w /2 , btn_base, BTN_PX, "strip",
+               align="center", color=HEX["btn_active_text"], mode=mode, view=mode, when="always")
+
+ba = pd.DataFrame(rows)
+ba = ba[ba.poly_id.str.contains("_active")]
+assert ba["view"].eq(ba["mode"]).all()
+print(ba.groupby("poly_id").size())
+
+BTN_LINE = 1
+for mode, label, x0, w in BUTTONS:
+    other = "count" if mode == "pct" else "pct"
+    rect(f"strip_btn_{mode}_inactive_outline", x0, STRIP_TOP, x0 + w, STRIP_BOTTOM, "strip",
+         color=HEX["btn_inactive_outline"], mode=mode, view= other, when="always")
+    rect(f"strip_btn_{mode}_inactive_bg", x0 + BTN_LINE, STRIP_TOP + BTN_LINE, x0 + w - BTN_LINE, STRIP_BOTTOM - BTN_LINE, "strip",
+         color=HEX["btn_inactive_bg"], mode=mode, view=other, when="always")
+    glyph_rows(BARLOW, f"strip_btn_{mode}_inactive_text", label, x0 + w / 2, btn_base, BTN_PX, "strip",
+               align="center", color=HEX["btn_inactive_text"], mode=mode, view=other, when="always")
+bi = pd.DataFrame(rows)
+bi = bi[bi.poly_id.str.contains("_inactive")]
+assert (bi["view"] != bi["mode"]).all()
+print(bi.groupby("view").size())
+
+st = pd.DataFrame(rows)
+st = st[st.poly_id.str.startswith("strip")]
+for col in ("mode", "view", "when"):
+    assert st[col].notna().all()
+assert st["view"].isin(["pct", "count"]).all()
+assert st["mode"].isin(["pct", "count"]).all()
+assert st["when"].isin(["always", "none", "selected"]).all()
+off = st[st["view"] != st["mode"]]
+assert off.poly_id.str.contains("inactive").all()
+cl = pd.DataFrame(rows)
+assert "click" in cl.columns
+assert cl["click"].notna().all()
+assert cl["click"].eq("none").all()
+print(len(cl))
+print(len(st))
+
 RANK = {"pct": list(PLACES.sort_values("p", ascending=False)["Location"]),
         "count": list(PLACES.sort_values("n", ascending=False)["Location"])}
 
@@ -373,7 +495,7 @@ for mode in ("pct", "count"):
             x = STREAM_X0 + col * cell_w
             y = row_top + lane * cell_h
             lit = i < place.k                             # the first k balloons are the seen ones
-            layout.append(dict(glyph_key="tiny", mode=mode, place=place.Location, idx=i,
+            layout.append(dict(glyph_key="tiny", mode=mode, place=place.Location, click=place.Location, idx=i,
                    x_off=f"{(x - W/2) / DEG_PX:.4f}", y_off=f"{(H_PX/2 - y) / DEG_PX:.4f}", lit=lit))
 
 assert len(layout) == 7222          # 3,611 balloons × 2 modes
