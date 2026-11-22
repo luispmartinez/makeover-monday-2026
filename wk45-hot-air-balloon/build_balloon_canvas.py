@@ -48,6 +48,7 @@ assert blend("D4AF37", "0B0B0D", 0.4) == "5B4D1E"
 
 PAGE = PALETTE["page"]
 STACK = [                                   # back to front: (element, hex)
+    ("band_sel",      blend(PALETTE["card border"], PAGE, 0.10)),     
     ("fan_gold",      blend(PALETTE["medal 1"], PAGE, 0.55)),
     ("fan_silver",    blend(PALETTE["medal 2"], PAGE, 0.55)),
     ("fan_bronze",    blend(PALETTE["medal 3"], PAGE, 0.55)),
@@ -722,6 +723,25 @@ assert lc["view"].eq(lc["mode"]).all()
 assert lc["click"].eq("none").all()
 assert lc.x_px.between(LABEL_X0, STREAM_X0).all()
 assert lc.y_px.between(BODY_TOP, BODY_BOTTOM).all()
+
+for mode in MODES:
+    for r, loc in enumerate(RANK[mode]):
+        row_top = BODY_TOP + r * ROW_H
+        rect(f"band_{mode}_{loc}", LABEL_X0, row_top, CARD_X0 - COL_GAP, row_top + ROW_H, "band",
+             color=HEX["band_sel"], mode=mode, view=mode, when="selected", place=loc)
+
+bd = pd.DataFrame(rows)
+bd = bd[bd["layer"] == "band"]
+print(len(bd))
+print(bd.groupby("place").poly_id.nunique())
+assert len(bd) == 80                           # 10 places × 2 modes × 4 corners
+assert bd["when"].eq("selected").all()
+assert bd["place"].isin(PLACES["Location"]).all()
+assert bd.groupby("place").poly_id.nunique().eq(2).all()   # each place: one band per mode
+assert bd["view"].eq(bd["mode"]).all()
+assert bd["click"].eq("none").all()
+assert bd.x_px.between(LABEL_X0, CARD_X0 - COL_GAP).all()
+assert bd.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
