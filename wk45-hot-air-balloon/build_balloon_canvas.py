@@ -587,6 +587,8 @@ print(ohio[["n", "in_service", "seen_in_service", "p", "k"]])
 CARD_TEXT_X = CARD_X0 + CARD_LINE + CARD_PAD_X
 name_base   = (hit_y0 + hit_y1) / 2 + NAME_PX * BARLOW.cap / 2
 
+ohio = PLACES[PLACES["Location"] == "Ohio"].iloc[0]
+
 for mode in MODES:
     for place in PLACES.itertuples():
         big, small, v1, v2, v3, v4 = card_strings(place)
@@ -677,6 +679,56 @@ RANK = {"pct": list(PLACES.sort_values("p", ascending=False)["Location"]),
 
 assert RANK["count"][0] == "New Mexico"
 assert RANK["pct"][0] == "Ohio"
+
+def row_strings(p, mode):
+    big, small = card_strings(p)[:2]      # the share mode's strings
+    if mode == "count":
+        big   = f"{p.n}"
+        small = f"{p.k / p.n:.0%} seen in person"
+    return big, small
+
+LEFT_BIG_PX  = 27                 # about 27 to match the card's scaling
+NAME_BIG_GAP = 9                # screenshot shows about 8 to 9 px
+name_right = LABEL_X0 + LABEL_W
+big_x      = name_right + NAME_BIG_GAP
+
+before = len(rows)          # replaces the first print(len(rows))
+for mode in MODES:
+    for r, loc in enumerate(RANK[mode]):
+        p = PLACES[PLACES["Location"] == loc].iloc[0]
+        big, small = row_strings(p, mode)
+        row_mid = BODY_TOP + r * ROW_H + ROW_H / 2
+        block_h = NAME_PX * BARLOW.cap + ROW_GAP + SMALL_PX * BARLOW.cap
+        name_base  = row_mid - block_h / 2 + NAME_PX * BARLOW.cap
+        small_base = name_base + ROW_GAP + SMALL_PX * BARLOW.cap
+        big_base   = row_mid + LEFT_BIG_PX * BARLOW.cap / 2
+        name_key = "name_rank1" if r == 0 else "name_other"
+        glyph_rows(NAME_FONT, f"left_name_{mode}_{r}", loc, name_right, name_base, NAME_PX, "text",
+                   align="right", color=HEX[name_key], mode=mode, view=mode, when="always", place="none")
+        # small line, then the big number, in the same pattern
+        glyph_rows(SMALL_FONT, f"small_name_{mode}_{r}",small,name_right, small_base, SMALL_PX, "text",
+                   align = "right", color= HEX["card_small"], mode=mode, view=mode, when="always", place="none")
+        glyph_rows(BIG_FONT, f"big_name_{mode}_{r}",big,big_x, big_base, LEFT_BIG_PX, "text",
+                           align = "left", color= HEX[name_key], mode=mode, view=mode, when="always", place="none")
+print(len(rows) - before)   # replaces the last print(len(rows))
+
+lc = pd.DataFrame(rows)
+lc = lc[lc.poly_id.str.startswith(("text:left_name", "text:small_name", "text:big_name"))]
+print(len(lc))
+assert len(lc) == len(rows) - before          # the prefixes catch every row the loop added
+assert lc["when"].eq("always").all()
+assert lc["place"].eq("none").all()
+assert lc["view"].eq(lc["mode"]).all()
+assert lc["click"].eq("none").all()
+assert lc.x_px.between(LABEL_X0, STREAM_X0).all()
+assert lc.y_px.between(BODY_TOP, BODY_BOTTOM).all()
+
+mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
+for who in (ohio, mexico):
+    for mode in ("count", "pct"):
+        print(who.Location, mode, row_strings(who, mode))
+
+
 
 layout = []
 for mode in ("pct", "count"):
