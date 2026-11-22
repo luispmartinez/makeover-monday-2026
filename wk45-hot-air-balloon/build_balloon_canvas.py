@@ -479,6 +479,199 @@ assert cl["click"].eq("none").all()
 print(len(cl))
 print(len(st))
 
+CARD_SHADOW, CARD_LINE = 4, 2
+CARD_TOP, CARD_BOTTOM = BODY_TOP, BODY_BOTTOM
+CARD_RIGHT = CARD_X0 + CARD_W
+assert CARD_RIGHT + CARD_SHADOW <= W
+assert CARD_BOTTOM + CARD_SHADOW < foot_base1 - FOOT_PX * BARLOW.cap
+
+for mode in ("count", "pct"):
+    rect(f"card_shadow_{mode}",
+         CARD_X0 + CARD_SHADOW, CARD_TOP + CARD_SHADOW,
+         CARD_RIGHT + CARD_SHADOW, CARD_BOTTOM + CARD_SHADOW,
+         "cardframe",
+         color=HEX["card_shadow"], mode=mode, view=mode,
+         when="selected", place="none")
+
+    rect(f"card_border_{mode}",
+         CARD_X0, CARD_TOP, CARD_RIGHT, CARD_BOTTOM,
+         "cardframe",
+         color=HEX["card_border"], mode=mode, view=mode,
+         when="selected", place="none")
+
+    rect(f"card_body_{mode}",
+         CARD_X0 + CARD_LINE, CARD_TOP + CARD_LINE,
+         CARD_RIGHT - CARD_LINE, CARD_BOTTOM - CARD_LINE,
+         "cardframe",
+         color=HEX["card_body"], mode=mode, view=mode,
+         when="selected", place="none")
+
+CARD_PAD_X, CARD_PAD_TOP = 18, 12
+CARD_INNER_W = CARD_W - 2 * (CARD_LINE + CARD_PAD_X)
+CLOSE = "Close ×"
+CLOSE_PX, CLOSE_PAD, CLOSE_H = 14, 10, 44
+close_w = BARLOW.width(CLOSE, CLOSE_PX)
+
+hit_x1 = CARD_RIGHT - CARD_LINE - CARD_PAD_X
+hit_x0 = hit_x1 - (close_w + 2 * CLOSE_PAD)
+hit_y0 = CARD_TOP + CARD_LINE + CARD_PAD_TOP
+hit_y1 = hit_y0 + CLOSE_H
+close_base = (hit_y0 + hit_y1) / 2 + CLOSE_PX * BARLOW.cap / 2
+
+assert hit_x0 > CARD_X0 + CARD_LINE and hit_y1 < CARD_BOTTOM
+
+for mode in ("count", "pct"):
+    rect(f"card_hit_{mode}", hit_x0, hit_y0, hit_x1, hit_y1, "closebtn",
+         color=HEX["card_hit"], mode=mode, view=mode, when="selected", place="none")
+    glyph_rows(BARLOW, f"card_close_{mode}", CLOSE, hit_x1 - CLOSE_PAD, close_base, CLOSE_PX, "closebtn",
+               align="right", color=HEX["card_close"], mode=mode, view=mode, when="selected", place="none")
+
+hc = pd.DataFrame(rows)
+hc = hc[hc.poly_id.str.contains("card_close")]
+assert len(hc) > 0
+assert hc.x_px.between(hit_x0, hit_x1).all()
+assert hc.y_px.between(hit_y0, hit_y1).all()
+print(hc.groupby("view").size())
+
+DIVIDER_GAP = 12
+big_base   = hit_y1 + ROW_GAP + BIG_PX * BARLOW.cap
+small_base = big_base + ROW_GAP + SMALL_PX * BARLOW.cap
+div_y      = small_base + DIVIDER_GAP
+div_x0, div_x1 = CARD_X0 + CARD_LINE + CARD_PAD_X, hit_x1
+
+assert div_y + 1 < CARD_BOTTOM - CARD_LINE
+
+for mode in ("count", "pct"):
+    rect(f"card_divider_{mode}", div_x0, div_y, div_x1, div_y + 1, "cardframe",
+         color=HEX["card_divider"], mode=mode, view=mode, when="selected", place="none")
+
+print(round(big_base, 1), round(small_base, 1), round(div_y, 1))
+
+
+ROWS_PER_CHAR = 25
+CARD_LABELS = ["STILL FLYING", "SEEN AMONG FLYING", "LARGEST FLEET"]
+
+name_chars  = PLACES["Location"].str.len().mean()
+big_chars   = 3                       # "40%" is how many characters?
+small_chars = 12                       # "290 balloons"
+label_chars = sum(len(s) for s in CARD_LABELS)
+value_chars = 75                       # your guess for the three value lines together
+MODES = ("count", "pct")
+
+
+per_place_chars = name_chars + big_chars + small_chars + value_chars
+content_rows    = per_place_chars * ROWS_PER_CHAR * len(PLACES) * len(MODES)
+label_rows      = label_chars * ROWS_PER_CHAR * len(MODES)
+print(round(content_rows), round(label_rows), round(content_rows + label_rows))
+
+print(PLACES.columns.tolist())
+
+LABEL_PX, LABEL_TRACK, VALUE_PX = 13, 1.82, 13      # 0.14em at 13px
+
+def card_strings(p):
+    big   = f"{p.k / p.n:.0%}"
+    small = f"{p.n:,} balloons"
+    v1 = f"{p.in_service:.0%}"
+    v2 = f"{p.seen_in_service:.0%}"
+    if BARLOW.width(p.top_owner, VALUE_PX) <= CARD_INNER_W:
+        v3 = [p.top_owner]
+    else:
+        v3 = p.top_owner.split(" & ")
+    v4 = f"{p.owner_n} balloons, {p.owner_seen} seen"
+    return big, small, v1, v2, v3, v4
+
+ohio = PLACES[PLACES["Location"] == "Ohio"].iloc[0]
+print(card_strings(ohio))
+print(ohio[["n", "in_service", "seen_in_service", "p", "k"]])
+
+CARD_TEXT_X = CARD_X0 + CARD_LINE + CARD_PAD_X
+name_base   = (hit_y0 + hit_y1) / 2 + NAME_PX * BARLOW.cap / 2
+
+for mode in MODES:
+    for place in PLACES.itertuples():
+        big, small, v1, v2, v3, v4 = card_strings(place)
+        glyph_rows(NAME_FONT, f"card_name_{mode}_{place.Location}", place.Location,
+                   CARD_TEXT_X,name_base, NAME_PX, "cardname",
+                   color=HEX["card_name"], mode=mode, view=mode, when="selected", place=place.Location)
+        glyph_rows(BIG_FONT, f"card_big_{mode}_{place.Location}", big,
+                   CARD_TEXT_X, big_base, BIG_PX, "cardname",
+                   color=HEX["card_big"], mode=mode, view=mode, when="selected", place=place.Location)
+        glyph_rows(SMALL_FONT, f"card_small_{mode}_{place.Location}", small,
+                   CARD_TEXT_X, small_base, SMALL_PX, "cardname",
+                   color=HEX["card_small"], mode=mode, view=mode, when="selected", place=place.Location)
+NAME_GAP = 12      # px of clear space between the name and the close button
+NAME_ROOM = hit_x0 - CARD_TEXT_X
+assert max(NAME_FONT.width(n, NAME_PX) for n in PLACES["Location"]) + NAME_GAP <= NAME_ROOM
+
+nm = pd.DataFrame(rows)
+nm = nm[nm.poly_id.str.startswith("cardname:card_")]
+print(len(nm), nm.groupby("view").size().to_dict())
+
+assert nm.x_px.between(CARD_TEXT_X, CARD_RIGHT - CARD_LINE - CARD_PAD_X).all()
+assert nm.y_px.between(hit_y0, div_y).all()
+
+
+LINE_H = 17.55
+LABEL_VALUE_GAP = LINE_H - VALUE_PX * BARLOW.cap
+GROUP_GAP       = 10 + LINE_H - LABEL_PX * BARLOW.cap
+LABEL_TOP_GAP   = 12 + (LINE_H - LABEL_PX * BARLOW.cap) / 2
+
+
+
+label_base = []
+value_base = []
+prev = div_y + 1
+for i in range(3):
+    lb = prev + (LABEL_TOP_GAP if i == 0 else GROUP_GAP) + LABEL_PX * BARLOW.cap
+    vb = lb + LABEL_VALUE_GAP + VALUE_PX * BARLOW.cap
+    label_base.append(lb); value_base.append(vb)
+    prev = vb
+MAX_OWNER_LINES = max(len(card_strings(p)[4]) for p in PLACES.itertuples())
+n_lines = [len(card_strings(p)[4]) for p in PLACES.itertuples()]
+assert n_lines.count(2) == 1
+value_last = value_base[-1] + MAX_OWNER_LINES * LINE_H      # the counts line of the tallest place
+assert value_last < CARD_BOTTOM - CARD_LINE
+
+
+widest_v3 = max(BARLOW.width(ln, VALUE_PX)
+                for p in PLACES.itertuples()
+                for ln in card_strings(p)[4])
+widest_v4 = max(BARLOW.width(card_strings(p)[5], VALUE_PX) for p in PLACES.itertuples())
+assert max(widest_v3, widest_v4) <= CARD_INNER_W
+
+for mode in MODES:
+    for i, text in enumerate(CARD_LABELS):
+        glyph_rows(BARLOW, f"card_label_{mode}_{i}", text, CARD_TEXT_X, label_base[i], LABEL_PX, "cardframe",
+                   tracking=LABEL_TRACK, color=HEX["card_label"], mode=mode, view=mode, when="selected", place="none")
+
+    for place in PLACES.itertuples():
+        big, small, v1, v2, v3, v4 = card_strings(place)
+        groups = [[v1], [v2], v3 + [v4]]
+        for i, group in enumerate(groups):
+            for j, text in enumerate(group):
+                glyph_rows(BARLOW, f"card_value_{mode}_{place.Location}_{i}_{j}", text,
+                           CARD_TEXT_X, value_base[i] + j * LINE_H , VALUE_PX, "cardname",
+                           color=HEX["card_value"], mode=mode, view=mode, when="selected", place=place.Location)
+
+ct = pd.DataFrame(rows)
+ct = ct[ct["layer"] == "cardname"]
+sh = pd.DataFrame(rows)
+sh = sh[sh["layer"].isin(["cardframe", "closebtn"])]
+assert len(sh) > 0
+assert sh["when"].eq("selected").all()
+assert sh["place"].eq("none").all()
+assert sh["view"].eq(sh["mode"]).all()
+assert sh["click"].eq("none").all()
+print(len(sh))
+bad = ct[~ct["place"].isin(PLACES["Location"])]
+
+assert len(ct) > 0
+assert ct["place"].ne("none").all()
+assert ct["place"].isin(PLACES["Location"]).all()
+assert ct["when"].eq("selected").all()
+assert ct["view"].eq(ct["mode"]).all()
+assert ct["click"].eq("none").all()
+
 RANK = {"pct": list(PLACES.sort_values("p", ascending=False)["Location"]),
         "count": list(PLACES.sort_values("n", ascending=False)["Location"])}
 
