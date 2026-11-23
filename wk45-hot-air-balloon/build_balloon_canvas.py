@@ -931,6 +931,8 @@ SPARK_UNIT  = [(88, 4), (90, 12), (98, 14), (90,16), (88, 24), (86, 16), (78, 14
 
 BIG_STROKE = 3                              # the sketch's stroke width, in 100-wide balloon units
 
+FAN_HALF, FAN_STEPS = 0.6, 12                   # stroke 1.2 wide; 12 steps per curve
+FAN_COLOR = ["fan_other", "fan_gold", "fan_silver", "fan_bronze"]     # index = medal level
 
 VALUE_COL = {"count": "n", "pct": "p"}
 before_big = len(rows)
@@ -952,6 +954,14 @@ for mode in MODES:
                   color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
         unit_poly(f"part_rope_r_{mode}_{r}", ROPE_R, big_cx, row_mid, w, "data",
                          color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+        fx0  = big_cx + 0.1 * w                                 # the sketch's origin, a little right of center
+        fy0  = row_mid + 0.43 * BALLOON_ASPECT * w                         # the sketch: 0.43 of the balloon's height below center
+        fx1  = STREAM_X0 - 4                                  # the sketch ends 4 px before the stream
+        fmid = (fx0 + fx1) / 2
+        for k in range(lanes):
+            fy1 = BODY_TOP + r * ROW_H + STREAM_PAD + k * cell_h + BALLOON_ASPECT * TINY_W / 2     # the middle of lane k's tiny balloon
+            ribbon(f"fan_{mode}_{r}_{k}", (fx0, fy0), (fmid, fy0), (fmid, fy1), (fx1, fy1), FAN_HALF, FAN_STEPS, "data",
+                   color=HEX[FAN_COLOR[level]], mode=mode, view=mode, when="always", place="none")
         flag_key = "flag_dark" if level == 0 else "flag_light"        # dark on medals, light on unmedaled
         for i, pts in enumerate(FLAG_DASHES):
             unit_poly(f"part_flag_{mode}_{r}_{i}", pts, big_cx, row_mid, w, "data",
@@ -978,7 +988,17 @@ assert set(fills.color) == {HEX["medal_fill_0"], HEX["medal_fill_1"], HEX["medal
 
 pt = pd.DataFrame(rows)
 pt = pt[pt.poly_id.str.startswith("part_")]
-assert len(bg) + len(pt) == len(rows) - before_big            # between them, the two prefixes cover everything the loop added
+fn = pd.DataFrame(rows)
+fn = fn[fn.poly_id.str.startswith("fan_")]
+assert len(bg) + len(pt) + len(fn) == len(rows) - before_big     # the three prefixes cover everything the loop added
+assert len(fn) == 3640                                            # 20 balloons × lanes × rows per ribbon
+assert fn.poly_id.nunique() == 140                               # 20 balloons × lanes ribbons
+assert fn["when"].eq("always").all()
+assert fn["place"].eq("none").all()
+assert fn["view"].eq(fn["mode"]).all()
+assert set(fn.color) == {HEX[k] for k in FAN_COLOR}
+assert fn.x_px.between(big_cx, STREAM_X0).all()                  # starts at the basket, ends before the stream
+assert fn.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 assert len(pt) == 1336                                         # 80 + 80 + 80 + the sparkle rows
 assert pt.poly_id.str.startswith("part_spark").sum() == 16   # rows, not shapes: 2 gold balloons × 8 corners
 assert pt["when"].eq("always").all()
