@@ -78,6 +78,9 @@ STACK = [                                   # back to front: (element, hex)
     ("strip_note",  PALETTE["notes"]),   # shares B9B6AA with card small, it follows card small
     ("card_value",   "F5F5F3"),   # F5F5F3 - literal nudge,
     ("strip_label", "F2D27E"),   # strip label and click text: F2D27A nudged, shared by both
+    ("call_bar",  "D4AF32"),    # gold bar and name share this hex; adjacent
+    ("call_name", "D4AF32"),
+    ("call_text", "F5F5F4"),
 ]
 HEX = dict(STACK)
 Z = {name: len(STACK) - i for i, (name, hex_) in enumerate(STACK)}
@@ -743,6 +746,68 @@ assert bd["click"].eq("none").all()
 assert bd.x_px.between(LABEL_X0, CARD_X0 - COL_GAP).all()
 assert bd.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 
+CALL_LINE, CALL_PAD_L, CALL_PAD_V = 2, 12, 4          # the sketch's border, left padding, top and bottom padding
+CALL_LABEL_PX, CALL_LABEL_TRACK   = 12, 1.68          # 0.14em at 12 px
+CALL_LABEL_GAP = 7                                    # name baseline to the first text line; nudge by eye
+call_x = CARD_X0 + CALL_LINE + CALL_PAD_L
+CALL_PAD_L = 12
+CALL_W = CARD_W - CARD_LINE - CALL_PAD_L           # card width, minus the border, minus the left padding
+CALLS  = {"Ohio": "Ohio has 290 balloons and the highest share seen in person, 40%.", "UK": "The UK has the second-most balloons, 548, and only 3% seen in person."}
+before_call = len(rows)
+def wrap(text, px, max_w):
+    words = text.split(" ")
+    lines, cur = [], words[0]
+    for w in words[1:]:
+        if BARLOW.width(cur + " " + w, px) <= max_w:     # does the next word still fit on this line?
+            cur = cur + " " + w
+        else:
+            lines.append(cur)
+            cur = w
+    lines.append(cur)
+    return lines
+
+CALL_PX = 13
+for name, text in CALLS.items():
+    lines = wrap(text, CALL_PX, CALL_W)
+    print(name, lines)
+    print([round(BARLOW.width(ln, CALL_PX)) for ln in lines])
+    assert max(BARLOW.width(ln, CALL_PX) for ln in lines) <= CALL_W
+
+for mode in MODES:
+    for r, loc in enumerate(RANK[mode]):
+        if loc not in CALLS:
+            continue
+        lines = wrap(CALLS[loc], CALL_PX, CALL_W)
+        row_mid = BODY_TOP + r * ROW_H + ROW_H / 2
+        block_h = 2 * CALL_PAD_V + CALL_LABEL_PX * BARLOW.cap + CALL_LABEL_GAP + CALL_PX * BARLOW.cap + (len(lines) - 1) * LINE_H
+        top        = row_mid - block_h / 2
+        label_base = top + CALL_PAD_V + CALL_LABEL_PX * BARLOW.cap
+        text_base0 = label_base + CALL_LABEL_GAP + CALL_PX * BARLOW.cap
+        # the bar, the name, then one glyph_rows per wrapped line at text_base0 + j * LINE_H
+
+        rect(f"call_bar_{mode}_{loc}", CARD_X0, top, CARD_X0 + CARD_LINE, top + block_h, "text",
+             color=HEX["call_bar"], mode=mode, view=mode, when="none", place="none")
+
+        glyph_rows(BARLOW, f"call_name_{mode}_{loc}", loc, call_x, label_base, CALL_LABEL_PX, "text",
+                   tracking=CALL_LABEL_TRACK, color=HEX["call_name"], mode=mode, view=mode, when="none", place="none")
+
+        for j, ln in enumerate(lines):
+            glyph_rows(BARLOW, f"call_text_{mode}_{loc}_{j}", ln, call_x, text_base0 + j * LINE_H, CALL_PX, "text",
+                       color=HEX["call_text"], mode=mode, view=mode, when="none", place="none")
+print(len(rows) - before_call) 
+
+ca = pd.DataFrame(rows)
+ca = ca[ca.poly_id.str.startswith(("call_bar", "text:call_name", "text:call_text"))]
+print(len(ca))
+assert len(ca) == len(rows) - before_call                     # the count before the loop; save it first, as you did for the left column
+assert ca["when"].eq("none").all()
+assert ca["place"].eq("none").all()
+assert ca["view"].eq(ca["mode"]).all()
+assert ca["click"].eq("none").all()
+assert ca.x_px.between(CARD_X0, CARD_RIGHT).all()
+assert ca.y_px.between(BODY_TOP, BODY_BOTTOM).all()
+assert ca[ca.poly_id.str.startswith("call_bar")].shape[0] == 16     # bars: 2 places × 2 modes × how many corners?
+     
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
     for mode in ("count", "pct"):
