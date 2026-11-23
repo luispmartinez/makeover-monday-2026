@@ -1006,7 +1006,13 @@ assert pt["place"].eq("none").all()
 assert pt["view"].eq(pt["mode"]).all()
 assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"], HEX["flag_dark"], HEX["flag_light"]}
 assert pt.y_px.between(BODY_TOP, BODY_BOTTOM).all()
-     
+
+cv = pd.DataFrame(rows)
+cv = cv[cv["mode"].notna()]                          # header, footer and sparkle rows use PALETTE colors and have no mode
+used    = set(cv["color"])
+stacked = {hex_ for name, hex_ in STACK}
+assert used <= stacked                              # every drawn color has a level
+assert stacked - used == {HEX["balloon_dim"], HEX["balloon_lit"]}     # only the tiny balloons live outside the canvas     
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
     for mode in ("count", "pct"):
