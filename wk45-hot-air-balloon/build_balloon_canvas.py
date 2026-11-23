@@ -889,6 +889,29 @@ def medal_level(mode, r, p):
         return r + 1 if r < 3 else 0           # r counts from 0
     return int(p.tier) if p.tier <= 3 else 0
 
+FLAG_C, FLAG_R, FLAG_W = (50, 50), 17, 4
+FLAG_DASH, FLAG_GAP, ARC_PTS = 7, 5, 3
+
+def flag_dashes():
+    """Unit-box polygons for the dashed circle: one list of points per dash."""
+    out = []
+    period = (FLAG_DASH + FLAG_GAP) / FLAG_R                 # one dash plus one gap, as an angle in radians
+    span   = FLAG_DASH / FLAG_R                              # the dash's own angle
+    n = math.ceil(2 * math.pi * FLAG_R / (FLAG_DASH + FLAG_GAP))                # how many dashes fit around the circle
+    for i in range(n):
+        a0 = i * period
+        a1 = a0 + span                                       # the dash's end angle
+        angles = [a0 + (a1 - a0) * k / (ARC_PTS - 1) for k in range(ARC_PTS)]
+        outer = [(FLAG_C[0] + (FLAG_R + FLAG_W / 2) * math.cos(a), FLAG_C[1] + (FLAG_R + FLAG_W / 2) * math.sin(a)) for a in angles]
+        inner = [(FLAG_C[0] + (FLAG_R - FLAG_W / 2) * math.cos(a), FLAG_C[1] + (FLAG_R - FLAG_W / 2) * math.sin(a)) for a in reversed(angles)]
+        out.append(outer + inner)
+    return out
+
+FLAG_DASHES = flag_dashes()
+assert len(FLAG_DASHES) == 9
+assert all(len(d) == 2 * ARC_PTS for d in FLAG_DASHES)
+assert all(15 - 1e-9 <= math.dist(pt, FLAG_C) <= 19 + 1e-9 for d in FLAG_DASHES for pt in d)
+
 BASKET_UNIT = [(40, 122), (60, 122), (60, 138), (40, 138)]
 ROPE_L      = [(41, 104), (43, 104), (46, 122), (44, 122)]       # the sketch's line from (42,104) to (45,122), 2 wide
 ROPE_R      = [(100 - x, y) for x, y in ROPE_L]                                               # the mirror of ROPE_L, like TINY_UNIT's right side
@@ -917,6 +940,10 @@ for mode in MODES:
                   color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
         unit_poly(f"part_rope_r_{mode}_{r}", ROPE_R, big_cx, row_mid, w, "data",
                          color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+        flag_key = "flag_dark" if level == 0 else "flag_light"        # dark on medals, light on unmedaled
+        for i, pts in enumerate(FLAG_DASHES):
+            unit_poly(f"part_flag_{mode}_{r}_{i}", pts, big_cx, row_mid, w, "data",
+                      color=HEX[flag_key], mode=mode, view=mode, when="always", place="none")
         if level == 1:                      # the sparkle is for gold only
             unit_poly(f"part_spark_{mode}_{r}", SPARK_UNIT, big_cx, row_mid, w, "data",
                       color=HEX["spark"], mode=mode, view=mode, when="always", place="none")
@@ -940,12 +967,12 @@ assert set(fills.color) == {HEX["medal_fill_0"], HEX["medal_fill_1"], HEX["medal
 pt = pd.DataFrame(rows)
 pt = pt[pt.poly_id.str.startswith("part_")]
 assert len(bg) + len(pt) == len(rows) - before_big            # between them, the two prefixes cover everything the loop added
-assert len(pt) == 256                                         # 80 + 80 + 80 + the sparkle rows
+assert len(pt) == 1336                                         # 80 + 80 + 80 + the sparkle rows
 assert pt.poly_id.str.startswith("part_spark").sum() == 16   # rows, not shapes: 2 gold balloons × 8 corners
 assert pt["when"].eq("always").all()
 assert pt["place"].eq("none").all()
 assert pt["view"].eq(pt["mode"]).all()
-assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"]}
+assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"], HEX["flag_dark"], HEX["flag_light"]}
 assert pt.y_px.between(BODY_TOP, BODY_BOTTOM).all()
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
