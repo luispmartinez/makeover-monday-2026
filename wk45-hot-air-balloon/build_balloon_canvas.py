@@ -1038,8 +1038,22 @@ assert ((H_PX / 2 - canvas.lat * DEG_PX) - canvas.y_px).abs().max() < 1e-9   # r
 assert canvas.lon.abs().max() <= W / 2 / DEG_PX + 1e-9 and canvas.lat.abs().max() <= H_PX / 2 / DEG_PX + 1e-9
 assert canvas.lon.abs().max() < 180 and canvas.lat.abs().max() < 90          # what MAKEPOINT accepts
 
+lay = pd.DataFrame(layout).astype({"x_off": float, "y_off": float})
+atl = pd.DataFrame(atlas).astype({"gx": float, "gy": float})
+tiny = lay.merge(atl, on="glyph_key")
+tiny["lon"] = tiny.x_off + tiny.gx
+tiny["lat"] = tiny.y_off + tiny.gy
+tiny["color"] = tiny["lit"].map({True: HEX["balloon_lit"], False: HEX["balloon_dim"]})
+tiny["poly_id"] = "tiny:" + tiny["mode"] + ":" + tiny["place"] + ":" + tiny["idx"].astype(str)
+tiny["layer"], tiny["view"], tiny["when"] = "data", tiny["mode"], "always"
+assert len(tiny) == 79442
+print(list(lay.columns))
+print(list(atl.columns))
+
 COLUMNS = ["layer", "poly_id", "point_order", "lat", "lon", "color", "mode", "view", "when", "place", "click"]
-out = canvas[COLUMNS].reset_index(drop=True)
+out = pd.concat([canvas[COLUMNS], tiny[COLUMNS]], ignore_index=True)
+assert not out.duplicated(subset=["mode", "poly_id", "point_order"]).any()
+assert out[["mode", "view", "when", "place", "click"]].notna().all().all()
 write_atomic(OUT / "balloon_canvas.csv", out.to_csv(index=False))
 
 check = pd.read_csv(OUT / "balloon_canvas.csv", dtype={"color": str})
