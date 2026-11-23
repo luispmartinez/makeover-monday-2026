@@ -861,7 +861,16 @@ lead = ca[ca.poly_id.str.startswith("call_leader")]
 assert lead.x_px.between(STREAM_X0, CARD_X0 - COL_GAP).all()
 box = ca[~ca.poly_id.str.startswith("call_leader")]
 assert box.x_px.between(CARD_X0, CARD_RIGHT).all()
- 
+
+def medal_level(mode, r, p):
+    """0 = unmedaled, 1 gold, 2 silver, 3 bronze."""
+    if mode == "count":
+        return r + 1 if r < 3 else 0           # r counts from 0
+    return int(p.tier) if p.tier <= 3 else 0
+
+BIG_STROKE = 3                              # the sketch's stroke width, in 100-wide balloon units
+
+
 VALUE_COL = {"count": "n", "pct": "p"}
 before_big = len(rows)
 for mode in MODES:
@@ -870,18 +879,23 @@ for mode in MODES:
         p = PLACES[PLACES["Location"] == loc].iloc[0]
         row_mid = BODY_TOP + r * ROW_H + ROW_H / 2
         w = max(BIG_MIN_W, BALLOON_MAX_W * math.sqrt(p[VALUE_COL[mode]] / top_value))
+        level   = medal_level(mode, r, p)
+        ring_w  = w + 2 * BIG_STROKE * w / 100
+        big_balloon(f"big_ring_{mode}_{r}", big_cx, row_mid, ring_w, "data",
+                    color=HEX[f"medal_ring_{level}"], mode=mode, view=mode, when="always", place="none")
         big_balloon(f"big_{mode}_{r}", big_cx, row_mid, w, "data",
-                    color=HEX["balloon_lit"], mode=mode, view=mode, when="always", place="none")
+                    color=HEX[f"medal_fill_{level}"], mode=mode, view=mode, when="always", place="none")
 print(len(rows) - before_big)
 
 bg = pd.DataFrame(rows)
 bg = bg[bg.poly_id.str.startswith("big_")]
 assert len(bg) == len(rows) - before_big
-assert bg.poly_id.nunique() == 20                    # one envelope per place per mode
+assert bg.poly_id.nunique() == 40                   # one envelope per place per mode
 assert bg["when"].eq("always").all()
 assert bg["place"].eq("none").all()
 assert bg["view"].eq(bg["mode"]).all()
-assert bg.x_px.between(big_cx - BALLOON_MAX_W / 2, big_cx + BALLOON_MAX_W / 2).all()   # stays centered on one column
+ring_max = BALLOON_MAX_W * (1 + 2 * BIG_STROKE / 100)       # the widest ring
+assert bg.x_px.between(big_cx - ring_max / 2, big_cx + ring_max / 2).all()
 assert bg.y_px.between(BODY_TOP, BODY_BOTTOM).all()    
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
