@@ -302,6 +302,18 @@ assert (min(r["x_px"] for r in rows), max(r["x_px"] for r in rows)) == (95, 105)
 assert (min(r["y_px"] for r in rows), max(r["y_px"] for r in rows)) == (126, 134)
 rows.clear()
 
+def ribbon(key, p0, p1, p2, p3, half, steps, layer, **cols):
+    """A cubic curve with thickness: the top edge out, the bottom edge back."""
+    pts    = [p0] + cubic(p0, p1, p2, p3, steps)             # cubic() leaves out p0
+    top    = [(x, y - half) for x, y in pts]
+    bottom = [(x, y + half) for x, y in reversed(pts)]              # offset the other way, in reverse order
+    line(key, [p[0] for p in top + bottom], [p[1] for p in top + bottom], layer, **cols)
+
+ribbon("t", (0, 0), (5, 0), (5, 10), (10, 10), 0.6, 8, "data")
+assert len(rows) == 18
+assert (rows[0]["x_px"], rows[0]["y_px"]) == (0, -.6)
+assert (min(r["y_px"] for r in rows), max(r["y_px"] for r in rows)) == (-.6, 10.6)
+rows.clear()
 
 
 # 3  LAYERS (one list of rows each; every row has layer, poly_id, point_order, x, y, color, tip)
