@@ -279,8 +279,24 @@ assert len(rows) == len(BIG_UNIT)
 assert (rows[0]["x_px"], rows[0]["y_px"]) == (100,66.5)     # the top vertex, (50, 3) in the unit
 assert max(r["y_px"] for r in rows) == 117                  # the bottom edge of the envelope
 assert round(min(r["x_px"] for r in rows) + max(r["x_px"] for r in rows), 6) == 200   # symmetric about cx
-  
+
 rows.clear()
+
+def unit_poly(key, pts, cx, cy, w, layer, **cols):
+    """Any shape given in the 100 x 140 balloon unit, placed like big_balloon."""
+    # same four lines of setup as big_balloon, then line(...) over pts instead of BIG_UNIT
+    s = w / 100
+    h = BALLOON_ASPECT * w                      # the height; your aspect constant is defined near the top
+    x = cx -  w/2                   # the left edge of the 100 × 140 box
+    y = cy - h/2                    # the top edge
+    line(key, [x + px * s for px, py in pts], [y + py * s for px, py in pts], layer, **cols)
+    
+unit_poly("t", [(40, 122), (60, 122), (60, 138), (40, 138)], 100, 100, 50, "data")
+assert len(rows) == 4
+assert (min(r["x_px"] for r in rows), max(r["x_px"] for r in rows)) == (95, 105)
+assert (min(r["y_px"] for r in rows), max(r["y_px"] for r in rows)) == (126, 134)
+rows.clear()
+
 
 
 # 3  LAYERS (one list of rows each; every row has layer, poly_id, point_order, x, y, color, tip)
@@ -897,6 +913,10 @@ assert bg["view"].eq(bg["mode"]).all()
 ring_max = BALLOON_MAX_W * (1 + 2 * BIG_STROKE / 100)       # the widest ring
 assert bg.x_px.between(big_cx - ring_max / 2, big_cx + ring_max / 2).all()
 assert bg.y_px.between(BODY_TOP, BODY_BOTTOM).all()    
+
+fills = bg[~bg.poly_id.str.startswith("big_ring")]
+assert fills.groupby("poly_id").color.nunique().eq(1).all()      # one color per envelope
+assert set(fills.color) == {HEX["medal_fill_0"], HEX["medal_fill_1"], HEX["medal_fill_2"], HEX["medal_fill_3"]}
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
