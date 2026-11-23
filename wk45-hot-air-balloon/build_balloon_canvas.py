@@ -889,6 +889,11 @@ def medal_level(mode, r, p):
         return r + 1 if r < 3 else 0           # r counts from 0
     return int(p.tier) if p.tier <= 3 else 0
 
+BASKET_UNIT = [(40, 122), (60, 122), (60, 138), (40, 138)]
+ROPE_L      = [(41, 104), (43, 104), (46, 122), (44, 122)]       # the sketch's line from (42,104) to (45,122), 2 wide
+ROPE_R      = [(100 - x, y) for x, y in ROPE_L]                                               # the mirror of ROPE_L, like TINY_UNIT's right side
+SPARK_UNIT  = [(88, 4), (90, 12), (98, 14), (90,16), (88, 24), (86, 16), (78, 14), (86, 12)]                                              # the sketch's path: M88 4 L90 12 L98 14 L90 16 L88 24 L86 16 L78 14 L86 12
+
 BIG_STROKE = 3                              # the sketch's stroke width, in 100-wide balloon units
 
 
@@ -906,11 +911,20 @@ for mode in MODES:
                     color=HEX[f"medal_ring_{level}"], mode=mode, view=mode, when="always", place="none")
         big_balloon(f"big_{mode}_{r}", big_cx, row_mid, w, "data",
                     color=HEX[f"medal_fill_{level}"], mode=mode, view=mode, when="always", place="none")
+        unit_poly(f"part_basket_{mode}_{r}", BASKET_UNIT, big_cx, row_mid, w, "data",
+                  color=HEX["basket"], mode=mode, view=mode, when="always", place="none")
+        unit_poly(f"part_rope_l_{mode}_{r}", ROPE_L, big_cx, row_mid, w, "data",
+                  color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+        unit_poly(f"part_rope_r_{mode}_{r}", ROPE_R, big_cx, row_mid, w, "data",
+                         color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+        if level == 1:                      # the sparkle is for gold only
+            unit_poly(f"part_spark_{mode}_{r}", SPARK_UNIT, big_cx, row_mid, w, "data",
+                      color=HEX["spark"], mode=mode, view=mode, when="always", place="none")
 print(len(rows) - before_big)
 
 bg = pd.DataFrame(rows)
 bg = bg[bg.poly_id.str.startswith("big_")]
-assert len(bg) == len(rows) - before_big
+assert len(bg) == 2 * len(MODES) * N_ROWS * len(BIG_UNIT)       # ring + fill, modes, places per mode, vertices
 assert bg.poly_id.nunique() == 40                   # one envelope per place per mode
 assert bg["when"].eq("always").all()
 assert bg["place"].eq("none").all()
@@ -922,6 +936,17 @@ assert bg.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 fills = bg[~bg.poly_id.str.startswith("big_ring")]
 assert fills.groupby("poly_id").color.nunique().eq(1).all()      # one color per envelope
 assert set(fills.color) == {HEX["medal_fill_0"], HEX["medal_fill_1"], HEX["medal_fill_2"], HEX["medal_fill_3"]}
+
+pt = pd.DataFrame(rows)
+pt = pt[pt.poly_id.str.startswith("part_")]
+assert len(bg) + len(pt) == len(rows) - before_big            # between them, the two prefixes cover everything the loop added
+assert len(pt) == 256                                         # 80 + 80 + 80 + the sparkle rows
+assert pt.poly_id.str.startswith("part_spark").sum() == 16   # rows, not shapes: 2 gold balloons × 8 corners
+assert pt["when"].eq("always").all()
+assert pt["place"].eq("none").all()
+assert pt["view"].eq(pt["mode"]).all()
+assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"]}
+assert pt.y_px.between(BODY_TOP, BODY_BOTTOM).all()
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
