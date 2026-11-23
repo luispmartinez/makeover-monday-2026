@@ -582,7 +582,10 @@ def card_strings(p):
         v3 = [p.top_owner]
     else:
         v3 = p.top_owner.split(" & ")
-    v4 = f"{p.owner_n} balloons, {p.owner_seen} seen"
+    if " and " in p.owner_seen:
+        v4 = f"{p.owner_n} balloons each, {p.owner_seen} seen"
+    else:
+        v4 = f"{p.owner_n} balloons, {p.owner_seen} seen"
     return big, small, v1, v2, v3, v4
 
 ohio = PLACES[PLACES["Location"] == "Ohio"].iloc[0]
@@ -822,7 +825,9 @@ mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
     for mode in ("count", "pct"):
         print(who.Location, mode, row_strings(who, mode))
-
+az = PLACES[PLACES["Location"] == "Arizona"].iloc[0]
+print(card_strings(az))
+print(az[["top_owner", "owner_n", "owner_seen"]])
 
 
 layout = []
