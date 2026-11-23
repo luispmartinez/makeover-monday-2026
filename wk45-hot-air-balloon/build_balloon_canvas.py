@@ -37,9 +37,7 @@ PALETTE = {"lit balloon": "D4AF37", "dim balloon": "55555E", "medal 1": "D4AF37"
            "card text": "F5F5F2", "card border": "D4AF37", "card body": "0B0B0D", "card small": "B9B6AA", "card value": "F5F5F2", "card name": "F2D27A",
            "card big": "F2D27A", "card close": "F2D27A", "card label": "D4AF37", "small text": "B9B6AA", "subtitle": "B9B6AA", "notes": "B9B6AA", "offset shadow": "D4AF37",
            "button text gold": "0B0B0D", "page": "0B0B0D", "button filled": "D4AF37", "button outline": "D4AF37", "button inactive": "F2D27A",
-           "bg": "0D0B12", "story": "E0243C", "context": "EDEAF2", 
-           "faint": "8E8A99", "band": "37101A", "flag": "D9A441", "panel": "14111C", "grid": "24202F",
-           "tick": "B4B0C0"}
+           "story": "E0243C", "context": "EDEAF2", "faint": "8E8A99", "flag": "D9A441"}
 
 assert blend("D4AF37", "0B0B0D", 1) == "D4AF37"
 assert blend("D4AF37", "0B0B0D", 0) == "0B0B0D"
@@ -90,7 +88,6 @@ STACK = [                                   # back to front: (element, hex)
 ]
 HEX = dict(STACK)
 Z = {name: len(STACK) - i for i, (name, hex_) in enumerate(STACK)}
-print(Z["fan_gold"], Z["name_other"])
 
 z_table = pd.DataFrame({"color": [hex_ for name, hex_ in STACK],
                         "z":     [Z [name]for name, hex_ in STACK]})
@@ -244,11 +241,11 @@ balloon("t", 10, 20, 50, "data")
 assert len(rows) == 11
 assert (min(r["x_px"] for r in rows), max(r["x_px"] for r in rows)) == (10, 60)
 assert (min(r["y_px"] for r in rows), max(r["y_px"] for r in rows)) == (20, 90)
-
+rows.clear() 
 BIG_CENTER_BACK = 86             # sketch: stream starts at 108, balloon center at 22
 BIG_MIN_W       = 8 * BALLOON_MAX_W / 36           # the sketch's floor of 8 px, scaled to your 27 px maximum
 big_cx          = STREAM_X0 - BIG_CENTER_BACK
-rows.clear()  
+ 
 
 def cubic(p0, p1, p2, p3, steps):
     """Points along one cubic curve, not including p0 (it's the previous segment's end)."""
@@ -289,7 +286,6 @@ rows.clear()
 
 def unit_poly(key, pts, cx, cy, w, layer, **cols):
     """Any shape given in the 100 x 140 balloon unit, placed like big_balloon."""
-    # same four lines of setup as big_balloon, then line(...) over pts instead of BIG_UNIT
     s = w / 100
     h = BALLOON_ASPECT * w                      # the height; your aspect constant is defined near the top
     x = cx -  w/2                   # the left edge of the 100 × 140 box
@@ -329,20 +325,17 @@ KICKER_BASE = 40 + 19 * BARLOW.cap
 TITLE_BASE  = KICKER_BASE + 24 + TITLE_PX * SHRIKHAND.cap
 SUB_BASE    = TITLE_BASE + SHADOW + 24 + 24 * BARLOW.cap
 assert SUB_BASE + 6 < HEADER_H                       # the subtitle's descenders stay above the first panel row
-print(SUB_BASE, HEADER_H, HEADER_H - SUB_BASE)
-print(BARLOW.width(SUBTITLE, 24), W - 2 * MARGIN)
+
 BTN_H = 44
 FREE_TOP, FREE_BOTTOM = SUB_BASE + 6, HEADER_H
 BTN_AIR = (FREE_BOTTOM - FREE_TOP - BTN_H) / 2     # equal air above and below
 STRIP_TOP = FREE_TOP + BTN_AIR
 STRIP_BOTTOM = STRIP_TOP + BTN_H
 assert STRIP_BOTTOM + BTN_AIR == FREE_BOTTOM
-print(STRIP_TOP, STRIP_BOTTOM, BTN_AIR)
 
 BTN_PX, BTN_PAD, BTN_GAP = 15, 20, 10
 BTN_TEXTS = ["Number of balloons", "Share seen in person"]
 btn_w = [BARLOW.width(t, BTN_PX) + 2 * BTN_PAD for t in BTN_TEXTS]
-print(btn_w)
 
 STRIP_LABEL = "SORT AND SIZE BY"
 STRIP_LABEL_PX, STRIP_LABEL_TRACK = 13, 2.34          # 0.18em at 13px, in px like KICK_TRACK
@@ -350,7 +343,7 @@ strip_label_w = BARLOW.width(STRIP_LABEL, STRIP_LABEL_PX, STRIP_LABEL_TRACK)
 BTN1_X0 = MARGIN + strip_label_w + 16
 BTN2_X0 = BTN1_X0 + btn_w[0] + BTN_GAP
 NOTE_X0 = BTN2_X0 + btn_w[1] + 16
-print(strip_label_w, BTN1_X0, BTN2_X0, NOTE_X0, W - MARGIN - NOTE_X0)
+
 
 NOTES = {"count": "Biggest fleets first. The stream and the big balloon follow the count; medals go by rank.",
          "pct":   "Highest share seen first. The big balloon follows the share; medals mark tiers whose gaps are wider than chance."}
@@ -359,7 +352,6 @@ NOTE_PX = 14
 note_w = {mode: BARLOW.width(text, NOTE_PX) for mode, text in NOTES.items()}
 click_w = BARLOW.width(CLICK, NOTE_PX)
 room = W - MARGIN - NOTE_X0 - click_w - 16
-print(note_w, click_w, room)
 
 
 KICK_TRACK = 1.5
@@ -371,8 +363,6 @@ assert BARLOW.width(KICKER, 19, KICK_TRACK) <= W - 2 * MARGIN, "kicker too wide"
 
 chk = pd.DataFrame(rows)
 
-print(chk.shape)
-print(chk.layer.value_counts().to_dict())
 shadow = chk.poly_id.str.contains("title_shadow")
 title  = chk.poly_id.str.contains(":title:")
 assert shadow.any() and title.any()
@@ -472,7 +462,6 @@ sp = sp[sp.poly_id.str.startswith("sparkle:")]
 assert sp.poly_id.nunique() == len(STARS)
 assert sp.layer.eq("back").all()
 assert sp.y_px.between(0, HEADER_H).all()
-chk = pd.DataFrame(rows)
 
 STRIP_MID = STRIP_TOP + BTN_H / 2
 label_base = STRIP_MID + STRIP_LABEL_PX * BARLOW.cap / 2
@@ -487,8 +476,6 @@ assert lab.view.nunique() == 2
 assert lab["view"].eq(lab["mode"]).all()
 assert lab.x_px.between(MARGIN, BTN1_X0 - 16).all()
 assert lab.y_px.between(STRIP_TOP, STRIP_BOTTOM).all()
-print(len(lab))
-print(lab.groupby("view").size())
 
 BUTTONS = [("count", BTN_TEXTS[0], BTN1_X0, btn_w[0]),
            ("pct",   BTN_TEXTS[1], BTN2_X0, btn_w[1])]
@@ -503,7 +490,6 @@ nt = pd.DataFrame(rows)
 nt = nt[nt.poly_id.str.contains("strip_note")]
 assert nt.view.nunique() == 2
 assert nt.x_px.between(NOTE_X0, W - MARGIN - click_w - 16).all()
-print(nt.groupby("view").size())
 
 for mode in ("count", "pct"):
     glyph_rows(BARLOW, f"strip_click_{mode}", CLICK, W - MARGIN, note_base, NOTE_PX, "strip",
@@ -515,7 +501,6 @@ assert len(ck) > 0
 assert ck["view"].nunique() == 2
 assert ck["view"].eq(ck["mode"]).all()
 assert ck.x_px.between(W - MARGIN - click_w, W - MARGIN).all()
-print(ck.groupby("view").size())
 
 for mode, label, x0, w in BUTTONS:
     rect(f"strip_btn_{mode}_active", x0, STRIP_TOP, x0 + w, STRIP_BOTTOM, "strip",
@@ -526,7 +511,6 @@ for mode, label, x0, w in BUTTONS:
 ba = pd.DataFrame(rows)
 ba = ba[ba.poly_id.str.contains("_active")]
 assert ba["view"].eq(ba["mode"]).all()
-print(ba.groupby("poly_id").size())
 
 BTN_LINE = 1
 for mode, label, x0, w in BUTTONS:
@@ -540,7 +524,7 @@ for mode, label, x0, w in BUTTONS:
 bi = pd.DataFrame(rows)
 bi = bi[bi.poly_id.str.contains("_inactive")]
 assert (bi["view"] != bi["mode"]).all()
-print(bi.groupby("view").size())
+
 
 st = pd.DataFrame(rows)
 st = st[st.poly_id.str.startswith("strip")]
@@ -555,8 +539,6 @@ cl = pd.DataFrame(rows)
 assert "click" in cl.columns
 assert cl["click"].notna().all()
 assert cl["click"].eq("none").all()
-print(len(cl))
-print(len(st))
 
 CARD_SHADOW, CARD_LINE = 4, 2
 CARD_TOP, CARD_BOTTOM = BODY_TOP, BODY_BOTTOM
@@ -610,7 +592,6 @@ hc = hc[hc.poly_id.str.contains("card_close")]
 assert len(hc) > 0
 assert hc.x_px.between(hit_x0, hit_x1).all()
 assert hc.y_px.between(hit_y0, hit_y1).all()
-print(hc.groupby("view").size())
 
 DIVIDER_GAP = 12
 big_base   = hit_y1 + ROW_GAP + BIG_PX * BARLOW.cap
@@ -624,26 +605,11 @@ for mode in ("count", "pct"):
     rect(f"card_divider_{mode}", div_x0, div_y, div_x1, div_y + 1, "cardframe",
          color=HEX["card_divider"], mode=mode, view=mode, when="selected", place="none")
 
-print(round(big_base, 1), round(small_base, 1), round(div_y, 1))
 
-
-ROWS_PER_CHAR = 25
 CARD_LABELS = ["STILL FLYING", "SEEN AMONG FLYING", "LARGEST FLEET"]
 
-name_chars  = PLACES["Location"].str.len().mean()
-big_chars   = 3                       # "40%" is how many characters?
-small_chars = 12                       # "290 balloons"
-label_chars = sum(len(s) for s in CARD_LABELS)
-value_chars = 75                       # your guess for the three value lines together
+
 MODES = ("count", "pct")
-
-
-per_place_chars = name_chars + big_chars + small_chars + value_chars
-content_rows    = per_place_chars * ROWS_PER_CHAR * len(PLACES) * len(MODES)
-label_rows      = label_chars * ROWS_PER_CHAR * len(MODES)
-print(round(content_rows), round(label_rows), round(content_rows + label_rows))
-
-print(PLACES.columns.tolist())
 
 LABEL_PX, LABEL_TRACK, VALUE_PX = 13, 1.82, 13      # 0.14em at 13px
 
@@ -662,14 +628,9 @@ def card_strings(p):
         v4 = f"{p.owner_n} balloons, {p.owner_seen} seen"
     return big, small, v1, v2, v3, v4
 
-ohio = PLACES[PLACES["Location"] == "Ohio"].iloc[0]
-print(card_strings(ohio))
-print(ohio[["n", "in_service", "seen_in_service", "p", "k"]])
-
 CARD_TEXT_X = CARD_X0 + CARD_LINE + CARD_PAD_X
 name_base   = (hit_y0 + hit_y1) / 2 + NAME_PX * BARLOW.cap / 2
 
-ohio = PLACES[PLACES["Location"] == "Ohio"].iloc[0]
 
 for mode in MODES:
     for place in PLACES.itertuples():
@@ -689,7 +650,6 @@ assert max(NAME_FONT.width(n, NAME_PX) for n in PLACES["Location"]) + NAME_GAP <
 
 nm = pd.DataFrame(rows)
 nm = nm[nm.poly_id.str.startswith("cardname:card_")]
-print(len(nm), nm.groupby("view").size().to_dict())
 
 assert nm.x_px.between(CARD_TEXT_X, CARD_RIGHT - CARD_LINE - CARD_PAD_X).all()
 assert nm.y_px.between(hit_y0, div_y).all()
@@ -746,8 +706,6 @@ assert sh["when"].eq("selected").all()
 assert sh["place"].eq("none").all()
 assert sh["view"].eq(sh["mode"]).all()
 assert sh["click"].eq("none").all()
-print(len(sh))
-bad = ct[~ct["place"].isin(PLACES["Location"])]
 
 assert len(ct) > 0
 assert ct["place"].ne("none").all()
@@ -774,7 +732,7 @@ NAME_BIG_GAP = 9                # screenshot shows about 8 to 9 px
 name_right = LABEL_X0 + LABEL_W
 big_x      = name_right + NAME_BIG_GAP
 
-before = len(rows)          # replaces the first print(len(rows))
+before = len(rows)   
 for mode in MODES:
     for r, loc in enumerate(RANK[mode]):
         p = PLACES[PLACES["Location"] == loc].iloc[0]
@@ -792,11 +750,10 @@ for mode in MODES:
                    align = "right", color= HEX["card_small"], mode=mode, view=mode, when="always", place="none")
         glyph_rows(BIG_FONT, f"big_name_{mode}_{r}",big,big_x, big_base, LEFT_BIG_PX, "text",
                            align = "left", color= HEX[name_key], mode=mode, view=mode, when="always", place="none")
-print(len(rows) - before)   # replaces the last print(len(rows))
 
 lc = pd.DataFrame(rows)
 lc = lc[lc.poly_id.str.startswith(("text:left_name", "text:small_name", "text:big_name"))]
-print(len(lc))
+
 assert len(lc) == len(rows) - before          # the prefixes catch every row the loop added
 assert lc["when"].eq("always").all()
 assert lc["place"].eq("none").all()
@@ -813,8 +770,7 @@ for mode in MODES:
 
 bd = pd.DataFrame(rows)
 bd = bd[bd["layer"] == "band"]
-print(len(bd))
-print(bd.groupby("place").poly_id.nunique())
+
 assert len(bd) == 80                           # 10 places × 2 modes × 4 corners
 assert bd["when"].eq("selected").all()
 assert bd["place"].isin(PLACES["Location"]).all()
@@ -846,8 +802,6 @@ def wrap(text, px, max_w):
 CALL_PX = 13
 for name, text in CALLS.items():
     lines = wrap(text, CALL_PX, CALL_W)
-    print(name, lines)
-    print([round(BARLOW.width(ln, CALL_PX)) for ln in lines])
     assert max(BARLOW.width(ln, CALL_PX) for ln in lines) <= CALL_W
 
 for mode in MODES:
@@ -876,13 +830,10 @@ for mode in MODES:
             
         rect(f"call_leader_{mode}_{loc}", stream_end + lead_gap_px, row_mid, CARD_X0 - COL_GAP, row_mid + 1, "text",
             color=HEX["call_leader"], mode=mode, view=mode, when="none", place="none")
-        
-        
-print(len(rows) - before_call) 
 
 ca = pd.DataFrame(rows)
 ca = ca[ca.poly_id.str.startswith(("call_bar", "text:call_name", "text:call_text", "call_leader"))]
-print(len(ca))
+
 assert len(ca) == len(rows) - before_call                     # the count before the loop; save it first, as you did for the left column
 assert ca["when"].eq("none").all()
 assert ca["place"].eq("none").all()
@@ -969,7 +920,6 @@ for mode in MODES:
         if level == 1:                      # the sparkle is for gold only
             unit_poly(f"part_spark_{mode}_{r}", SPARK_UNIT, big_cx, row_mid, w, "data",
                       color=HEX["spark"], mode=mode, view=mode, when="always", place="none")
-print(len(rows) - before_big)
 
 bg = pd.DataFrame(rows)
 bg = bg[bg.poly_id.str.startswith("big_")]
@@ -1013,14 +963,6 @@ used    = set(cv["color"])
 stacked = {hex_ for name, hex_ in STACK}
 assert used <= stacked                              # every drawn color has a level
 assert stacked - used == {HEX["balloon_dim"], HEX["balloon_lit"]}     # only the tiny balloons live outside the canvas     
-mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
-for who in (ohio, mexico):
-    for mode in ("count", "pct"):
-        print(who.Location, mode, row_strings(who, mode))
-az = PLACES[PLACES["Location"] == "Arizona"].iloc[0]
-print(card_strings(az))
-print(az[["top_owner", "owner_n", "owner_seen"]])
-
 
 layout = []
 for mode in ("pct", "count"):
