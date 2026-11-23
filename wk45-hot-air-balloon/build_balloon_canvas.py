@@ -796,7 +796,7 @@ CALL_LABEL_PX, CALL_LABEL_TRACK   = 12, 1.68          # 0.14em at 12 px
 CALL_LABEL_GAP = 7                                    # name baseline to the first text line; nudge by eye
 call_x = CARD_X0 + CALL_LINE + CALL_PAD_L
 CALL_W = CARD_W - CARD_LINE - CALL_PAD_L           # card width, minus the border, minus the left padding
-CALLS  = {"Ohio": "Ohio has 290 balloons and the highest share seen in person, 40%.", "UK": "The UK has the second-most balloons, 548, and only 3% seen in person."}
+CALLS  = {"Ohio": "Ohio, 290 balloons, 40% seen in person.", "UK": "UK, 548 balloons, 3% seen in person."}
 before_call = len(rows)
 def wrap(text, px, max_w):
     words = text.split(" ")
