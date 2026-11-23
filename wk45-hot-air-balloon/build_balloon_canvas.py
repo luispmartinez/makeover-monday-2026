@@ -166,6 +166,7 @@ def line(key, xs, ys, layer, **cols):
     assert layer in LAYERS, f"{key}: unknown layer {layer!r}"
     assert len(xs) == len(ys) >= 1
     cols.setdefault("click", "none")
+    cols.setdefault("place", "none")
     for order, (x, y) in enumerate(zip(xs, ys), start=1):
         rows.append(dict(layer=layer, poly_id=key, point_order=order, x_px=x, y_px=y, **cols))
 
@@ -968,7 +969,7 @@ assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"], HEX["flag_dar
 assert pt.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 
 cv = pd.DataFrame(rows)
-cv = cv[cv["mode"].notna()]                          # header, footer and sparkle rows use PALETTE colors have a mode
+assert cv["mode"].notna().all()
 used    = set(cv["color"])
 stacked = {hex_ for name, hex_ in STACK}
 assert used <= stacked                              # every drawn color has a level
@@ -1003,7 +1004,7 @@ write_atomic(OUT / "balloon_atlas.csv", pd.DataFrame(atlas).to_csv(index=False))
 
 
 print(len(rows))          # header + footer + credit + sparkles
-raise SystemExit("chunk done")
+
 
 # 5  ASSERTS: before the conversion
 canvas = pd.DataFrame(rows)                              # first line: the only build
@@ -1023,6 +1024,8 @@ assert canvas.x_px.between(0, W).all() and canvas.y_px.between(0, H_PX).all()
 
 assert len(canvas) < 120_000
 
+assert canvas[["mode", "view", "when", "place", "click"]].notna().all().all()     # no row without the contract
+assert not canvas.duplicated(subset=["mode", "poly_id", "point_order"]).any()          # one vertex per shape per mode
 # 6  CONVERT then WRITE
 assert len(rows) == rows_at_build                       # nothing was drawn after the section 5 snapshot
 
@@ -1035,7 +1038,7 @@ assert ((H_PX / 2 - canvas.lat * DEG_PX) - canvas.y_px).abs().max() < 1e-9   # r
 assert canvas.lon.abs().max() <= W / 2 / DEG_PX + 1e-9 and canvas.lat.abs().max() <= H_PX / 2 / DEG_PX + 1e-9
 assert canvas.lon.abs().max() < 180 and canvas.lat.abs().max() < 90          # what MAKEPOINT accepts
 
-COLUMNS = ["layer", "poly_id", "point_order", "lat", "lon", "color"]
+COLUMNS = ["layer", "poly_id", "point_order", "lat", "lon", "color", "mode", "view", "when", "place", "click"]
 out = canvas[COLUMNS].reset_index(drop=True)
 write_atomic(OUT / "balloon_canvas.csv", out.to_csv(index=False))
 
