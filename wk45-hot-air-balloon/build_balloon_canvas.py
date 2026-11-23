@@ -46,6 +46,10 @@ assert blend("D4AF37", "0B0B0D", 0.4) == "5B4D1E"
 
 PAGE = PALETTE["page"]
 STACK = [                                   # back to front: (element, hex)
+    ("title_shadow", blend(PALETTE["card border"], PAGE, 0.45)),
+    ("headline",     "F2D280"),
+    ("kicker",       "D4AF31"),
+    ("head_grey",    "B9B6AC"),
     ("call_leader",   blend("B9B6AA", PAGE, 0.7)),
     ("band_sel",      blend(PALETTE["card border"], PAGE, 0.10)),     
     ("fan_gold",      blend(PALETTE["medal 1"], PAGE, 0.55)),
@@ -313,7 +317,7 @@ rows.clear()
 
 
 # 3  LAYERS (one list of rows each; every row has layer, poly_id, point_order, x, y, color, tip)
-HEADLINE_TEXT = "Be Seen,  "             # placeholder; your Hemingway/Burnett line replaces it
+HEADLINE_TEXT = "Most balloons are not seen"             # placeholder; your Hemingway/Burnett line replaces it
 assert HEAD["totals"] == {"all": 7235, "top_ten": 3611, "seen": 1200}
 SUBTITLE = f"The ten places with the most balloons hold {HEAD['totals']['top_ten']:,} of the {HEAD['totals']['all']:,} balloons in the archive"
 assert BARLOW.width(SUBTITLE, 24) <=  W - 2 * MARGIN, "subtitle too wide"
@@ -355,10 +359,11 @@ room = W - MARGIN - NOTE_X0 - click_w - 16
 
 
 KICK_TRACK = 1.5
-glyph_rows(BARLOW, "kicker", KICKER, MARGIN, KICKER_BASE, 19, "text", tracking=KICK_TRACK, color=PALETTE["flag"])
-glyph_rows(SHRIKHAND, "title_shadow", HEADLINE_TEXT, MARGIN + SHADOW, TITLE_BASE + SHADOW, TITLE_PX, "back", color=PALETTE["story"])
-glyph_rows(SHRIKHAND, "title", HEADLINE_TEXT, MARGIN, TITLE_BASE, TITLE_PX, "text", color=PALETTE["context"])
-glyph_rows(BARLOW, "sub", SUBTITLE, MARGIN, SUB_BASE, 24, "text", color=PALETTE["faint"])
+static_from = len(rows)
+glyph_rows(BARLOW, "kicker", KICKER, MARGIN, KICKER_BASE, 19, "text", tracking=KICK_TRACK, color=HEX["kicker"])
+glyph_rows(SHRIKHAND, "title_shadow", HEADLINE_TEXT, MARGIN + SHADOW, TITLE_BASE + SHADOW, TITLE_PX, "back", color=HEX["title_shadow"])
+glyph_rows(SHRIKHAND, "title", HEADLINE_TEXT, MARGIN, TITLE_BASE, TITLE_PX, "text", color=HEX["headline"])
+glyph_rows(BARLOW, "sub", SUBTITLE, MARGIN, SUB_BASE, 24, "text", color=HEX["head_grey"])
 assert BARLOW.width(KICKER, 19, KICK_TRACK) <= W - 2 * MARGIN, "kicker too wide"
 
 chk = pd.DataFrame(rows)
@@ -379,8 +384,8 @@ assert BARLOW.width(FOOT_2, FOOT_PX) <=  W - 2 * MARGIN, "footnote too wide"
 foot_base1 = H_PX - FOOTER_H + FOOT_TOP_PAD + FOOT_PX * BARLOW.cap
 foot_base2 = foot_base1 + FOOT_LEAD
 assert foot_base2 + 4 < H_PX                                       # the second line stays on the canvas
-glyph_rows(BARLOW, "foot1", FOOT_1, MARGIN, foot_base1, FOOT_PX, "text", color=PALETTE["faint"])
-glyph_rows(BARLOW, "foot2", FOOT_2, MARGIN, foot_base2, FOOT_PX, "text", color=PALETTE["faint"])
+glyph_rows(BARLOW, "foot1", FOOT_1, MARGIN, foot_base1, FOOT_PX, "text", color=HEX["head_grey"])
+glyph_rows(BARLOW, "foot2", FOOT_2, MARGIN, foot_base2, FOOT_PX, "text", color=HEX["head_grey"])
 ff = pd.DataFrame(rows)
 ff = ff[ff.poly_id.str.contains(":foot")]
 assert len(ff) > 0
@@ -390,12 +395,12 @@ assert ff.x_px.between(MARGIN, W - MARGIN).all()
 name_w = SHRIKHAND.width(CREDIT_NAME, CREDIT_PX)
 credit_right = W - MARGIN - CREDIT_SHADOW
 assert BARLOW.width(FOOT_2, FOOT_PX) + 24 + BARLOW.width(CREDIT_LEAD, FOOT_PX) + name_w <= W - 2 * MARGIN, "credit collides with the footnote"
-glyph_rows(SHRIKHAND, "credit_shadow", CREDIT_NAME, credit_right + CREDIT_SHADOW, foot_base2 + CREDIT_SHADOW, CREDIT_PX, "back", align="right", color=PALETTE["story"])
-glyph_rows(SHRIKHAND, "credit_name", CREDIT_NAME, credit_right, foot_base2, CREDIT_PX, "text", align="right", color=PALETTE["context"])
+glyph_rows(SHRIKHAND, "credit_shadow", CREDIT_NAME, credit_right + CREDIT_SHADOW, foot_base2 + CREDIT_SHADOW, CREDIT_PX, "back", align="right", color=HEX["title_shadow"])
+glyph_rows(SHRIKHAND, "credit_name", CREDIT_NAME, credit_right, foot_base2, CREDIT_PX, "text", align="right", color=HEX["headline"])
 
 
 lead_base = foot_base2 + CREDIT_LEAD_DROP                    # sit on the shadow's baseline, so the two read as one line
-glyph_rows(BARLOW, "credit_lead", CREDIT_LEAD, credit_right - name_w - 4, lead_base, FOOT_PX, "text", align="right", color=PALETTE["faint"])
+glyph_rows(BARLOW, "credit_lead", CREDIT_LEAD, credit_right - name_w - 4, lead_base, FOOT_PX, "text", align="right", color=HEX["head_grey"])
 cr = pd.DataFrame(rows); cr = cr[cr.poly_id.str.contains(":credit_")]
 assert cr.poly_id.str.contains("credit_shadow").sum() == cr.poly_id.str.contains("credit_name").sum() > 0
 assert cr.y_px.between(H_PX - FOOTER_H, H_PX).all() and cr.x_px.between(MARGIN, W - MARGIN).all()
@@ -452,10 +457,11 @@ for i, (cx, cy, rad) in enumerate(STARS):
         ), f"sparkle:{i} too close to sparkle:{j}"
 
     assert star_box[0] >= MARGIN and star_box[2] <= W - MARGIN, f"sparkle:{i} outside horizontal margins"
-    star(f"sparkle:{i}", cx, cy, rad, "back", color=PALETTE["context"])
+    star(f"sparkle:{i}", cx, cy, rad, "back", color=HEX["spark"])
     assert star_box[1] >= MARGIN, f"sparkle:{i} above the top margin"
     assert star_box[3] <= H_PX - MARGIN, f"sparkle:{i} below the bottom margin"
     assert star_box[3] <= HEADER_H, f"sparkle:{i} outside the header's vertical space"
+static_to = len(rows)
 
 sp = pd.DataFrame(rows)
 sp = sp[sp.poly_id.str.startswith("sparkle:")]
@@ -610,7 +616,11 @@ CARD_LABELS = ["STILL FLYING", "SEEN AMONG FLYING", "LARGEST FLEET"]
 
 
 MODES = ("count", "pct")
-
+static = rows[static_from:static_to]
+for row in static:
+    row.update(mode=MODES[0], view=MODES[0], when="always", place="none")       # tag the originals as the first mode
+for m in MODES[1:]:
+    rows.extend(dict(row, mode=m, view=m) for row in static)    # one copy per remaining mode
 LABEL_PX, LABEL_TRACK, VALUE_PX = 13, 1.82, 13      # 0.14em at 13px
 
 def card_strings(p):
@@ -958,10 +968,11 @@ assert set(pt.color) == {HEX["basket"], HEX["rope"], HEX["spark"], HEX["flag_dar
 assert pt.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 
 cv = pd.DataFrame(rows)
-cv = cv[cv["mode"].notna()]                          # header, footer and sparkle rows use PALETTE colors and have no mode
+cv = cv[cv["mode"].notna()]                          # header, footer and sparkle rows use PALETTE colors have a mode
 used    = set(cv["color"])
 stacked = {hex_ for name, hex_ in STACK}
 assert used <= stacked                              # every drawn color has a level
+
 assert stacked - used == {HEX["balloon_dim"], HEX["balloon_lit"]}     # only the tiny balloons live outside the canvas     
 
 layout = []
