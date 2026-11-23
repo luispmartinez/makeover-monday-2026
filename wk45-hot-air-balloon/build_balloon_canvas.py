@@ -48,6 +48,7 @@ assert blend("D4AF37", "0B0B0D", 0.4) == "5B4D1E"
 
 PAGE = PALETTE["page"]
 STACK = [                                   # back to front: (element, hex)
+    ("call_leader",   blend("B9B6AA", PAGE, 0.7)),
     ("band_sel",      blend(PALETTE["card border"], PAGE, 0.10)),     
     ("fan_gold",      blend(PALETTE["medal 1"], PAGE, 0.55)),
     ("fan_silver",    blend(PALETTE["medal 2"], PAGE, 0.55)),
@@ -750,7 +751,6 @@ CALL_LINE, CALL_PAD_L, CALL_PAD_V = 2, 12, 4          # the sketch's border, lef
 CALL_LABEL_PX, CALL_LABEL_TRACK   = 12, 1.68          # 0.14em at 12 px
 CALL_LABEL_GAP = 7                                    # name baseline to the first text line; nudge by eye
 call_x = CARD_X0 + CALL_LINE + CALL_PAD_L
-CALL_PAD_L = 12
 CALL_W = CARD_W - CARD_LINE - CALL_PAD_L           # card width, minus the border, minus the left padding
 CALLS  = {"Ohio": "Ohio has 290 balloons and the highest share seen in person, 40%.", "UK": "The UK has the second-most balloons, 548, and only 3% seen in person."}
 before_call = len(rows)
@@ -783,8 +783,10 @@ for mode in MODES:
         top        = row_mid - block_h / 2
         label_base = top + CALL_PAD_V + CALL_LABEL_PX * BARLOW.cap
         text_base0 = label_base + CALL_LABEL_GAP + CALL_PX * BARLOW.cap
-        # the bar, the name, then one glyph_rows per wrapped line at text_base0 + j * LINE_H
-
+        p = PLACES[PLACES["Location"] == loc].iloc[0]
+        stream_end = STREAM_X0 + math.ceil(p.n / lanes) * cell_w
+        lead_gap_px = 6
+        
         rect(f"call_bar_{mode}_{loc}", CARD_X0, top, CARD_X0 + CARD_LINE, top + block_h, "text",
              color=HEX["call_bar"], mode=mode, view=mode, when="none", place="none")
 
@@ -794,19 +796,27 @@ for mode in MODES:
         for j, ln in enumerate(lines):
             glyph_rows(BARLOW, f"call_text_{mode}_{loc}_{j}", ln, call_x, text_base0 + j * LINE_H, CALL_PX, "text",
                        color=HEX["call_text"], mode=mode, view=mode, when="none", place="none")
+            
+        rect(f"call_leader_{mode}_{loc}", stream_end + lead_gap_px, row_mid, CARD_X0 - COL_GAP, row_mid + 1, "text",
+            color=HEX["call_leader"], mode=mode, view=mode, when="none", place="none")
+        
+        
 print(len(rows) - before_call) 
 
 ca = pd.DataFrame(rows)
-ca = ca[ca.poly_id.str.startswith(("call_bar", "text:call_name", "text:call_text"))]
+ca = ca[ca.poly_id.str.startswith(("call_bar", "text:call_name", "text:call_text", "call_leader"))]
 print(len(ca))
 assert len(ca) == len(rows) - before_call                     # the count before the loop; save it first, as you did for the left column
 assert ca["when"].eq("none").all()
 assert ca["place"].eq("none").all()
 assert ca["view"].eq(ca["mode"]).all()
 assert ca["click"].eq("none").all()
-assert ca.x_px.between(CARD_X0, CARD_RIGHT).all()
 assert ca.y_px.between(BODY_TOP, BODY_BOTTOM).all()
 assert ca[ca.poly_id.str.startswith("call_bar")].shape[0] == 16     # bars: 2 places × 2 modes × how many corners?
+lead = ca[ca.poly_id.str.startswith("call_leader")]
+assert lead.x_px.between(STREAM_X0, CARD_X0 - COL_GAP).all()
+box = ca[~ca.poly_id.str.startswith("call_leader")]
+assert box.x_px.between(CARD_X0, CARD_RIGHT).all()
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
