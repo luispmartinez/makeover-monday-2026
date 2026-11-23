@@ -239,6 +239,47 @@ balloon("t", 10, 20, 50, "data")
 assert len(rows) == 11
 assert (min(r["x_px"] for r in rows), max(r["x_px"] for r in rows)) == (10, 60)
 assert (min(r["y_px"] for r in rows), max(r["y_px"] for r in rows)) == (20, 90)
+
+BIG_CENTER_BACK = 86             # sketch: stream starts at 108, balloon center at 22
+BIG_MIN_W       = 8 * BALLOON_MAX_W / 36           # the sketch's floor of 8 px, scaled to your 27 px maximum
+big_cx          = STREAM_X0 - BIG_CENTER_BACK
+rows.clear()  
+
+def cubic(p0, p1, p2, p3, steps):
+    """Points along one cubic curve, not including p0 (it's the previous segment's end)."""
+    pts = []
+    for i in range(1, steps + 1):
+        t = i / steps
+        x = (1 - t)**3 * p0[0] + 3 * (1 - t)**2 * t * p1[0] + 3 * (1 - t) * t**2 * p2[0] + t**3 * p3[0]
+        y = (1 - t)**3 * p0[1] + 3 * (1 - t)**2 * t * p1[1] + 3 * (1 - t) * t**2 * p2[1] + t**3 * p3[1]
+        pts.append((x, y))
+    return pts
+
+BIG_STEPS = 6
+BIG_UNIT = ([(50, 3)]
+            + cubic((50, 3), (18, 3), (4, 30), (12, 58), BIG_STEPS)
+            + cubic((12, 58), (18, 78), (36, 92), (41, 104), BIG_STEPS)
+            + [(59, 104)]
+            + cubic((59, 104), (64, 92), (82, 78), (88, 58), BIG_STEPS)
+            + cubic((88, 58),(96, 30), (82, 3), (50, 3), BIG_STEPS)[:-1])
+assert len(BIG_UNIT) == 4 * BIG_STEPS + 1
+
+def big_balloon(key, cx, cy, w, layer, **cols):
+    """Envelope centered on (cx, cy), width w; height is 1.4 w."""
+    s = w / 100
+    h = BALLOON_ASPECT * w                      # the height; your aspect constant is defined near the top
+    x = cx -  w/2                   # the left edge of the 100 × 140 box
+    y = cy - h/2                    # the top edge
+    line(key, [x + px * s for px, py in BIG_UNIT], [y + py * s for px, py in BIG_UNIT], layer, **cols)
+
+
+big_balloon("t", 100, 100, 50, "data")
+
+assert len(rows) == len(BIG_UNIT)
+assert (rows[0]["x_px"], rows[0]["y_px"]) == (100,66.5)     # the top vertex, (50, 3) in the unit
+assert max(r["y_px"] for r in rows) == 117                  # the bottom edge of the envelope
+assert round(min(r["x_px"] for r in rows) + max(r["x_px"] for r in rows), 6) == 200   # symmetric about cx
+  
 rows.clear()
 
 
@@ -820,6 +861,10 @@ lead = ca[ca.poly_id.str.startswith("call_leader")]
 assert lead.x_px.between(STREAM_X0, CARD_X0 - COL_GAP).all()
 box = ca[~ca.poly_id.str.startswith("call_leader")]
 assert box.x_px.between(CARD_X0, CARD_RIGHT).all()
+ 
+
+
+    
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
