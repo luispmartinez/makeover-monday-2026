@@ -59,6 +59,11 @@ STACK = [                                   # back to front: (element, hex)
     ("medal_ring_1",  PALETTE["medal rank 1"]),  ("medal_ring_2", PALETTE["medal rank 2"]),  ("medal_ring_3", PALETTE["medal rank 3"]),  ("medal_ring_0", PALETTE["unmedaled rank"]),
     ("medal_fill_1",  "D4AF38"),  # medal 1 fill: D4AF37 nudged, so the lit balloon keeps its own level
     ("medal_fill_2", PALETTE["medal 2"]),  ("medal_fill_3", PALETTE["medal 3"]),  ("medal_fill_0", PALETTE["unmedaled fill"]),
+    ("flag_dark",    "0B0C0C"),
+    ("flag_light",    "F2D27F"),
+    ("rope",          "B9B6AB"),
+    ("basket",        "8B5E34"),
+    ("spark",         "FFFFFF"),
     ("name_rank1",    "F2D27B"),  # rank 1 name: F2D27A nudged, so the ring keeps its own level,
     ("name_other",    PALETTE["place name"]),
     ("btn_inactive_outline", "D4AF36"),   # inactive button outline: D4AF37 nudged, so the lit balloon keeps its own level
