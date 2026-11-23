@@ -317,7 +317,7 @@ rows.clear()
 
 
 # 3  LAYERS (one list of rows each; every row has layer, poly_id, point_order, x, y, color, tip)
-HEADLINE_TEXT = "Most balloons are not seen"             # placeholder; your Hemingway/Burnett line replaces it
+HEADLINE_TEXT = "Most balloons go unseen"             # placeholder; your Hemingway/Burnett line replaces it
 assert HEAD["totals"] == {"all": 7235, "top_ten": 3611, "seen": 1200}
 SUBTITLE = f"The ten places with the most balloons hold {HEAD['totals']['top_ten']:,} of the {HEAD['totals']['all']:,} balloons in the archive"
 assert BARLOW.width(SUBTITLE, 24) <=  W - 2 * MARGIN, "subtitle too wide"
