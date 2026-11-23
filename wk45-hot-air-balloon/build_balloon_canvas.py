@@ -862,9 +862,27 @@ assert lead.x_px.between(STREAM_X0, CARD_X0 - COL_GAP).all()
 box = ca[~ca.poly_id.str.startswith("call_leader")]
 assert box.x_px.between(CARD_X0, CARD_RIGHT).all()
  
+VALUE_COL = {"count": "n", "pct": "p"}
+before_big = len(rows)
+for mode in MODES:
+    top_value = PLACES[VALUE_COL[mode]].max()          # the biggest value in this mode
+    for r, loc in enumerate(RANK[mode]):
+        p = PLACES[PLACES["Location"] == loc].iloc[0]
+        row_mid = BODY_TOP + r * ROW_H + ROW_H / 2
+        w = max(BIG_MIN_W, BALLOON_MAX_W * math.sqrt(p[VALUE_COL[mode]] / top_value))
+        big_balloon(f"big_{mode}_{r}", big_cx, row_mid, w, "data",
+                    color=HEX["balloon_lit"], mode=mode, view=mode, when="always", place="none")
+print(len(rows) - before_big)
 
-
-    
+bg = pd.DataFrame(rows)
+bg = bg[bg.poly_id.str.startswith("big_")]
+assert len(bg) == len(rows) - before_big
+assert bg.poly_id.nunique() == 20                    # one envelope per place per mode
+assert bg["when"].eq("always").all()
+assert bg["place"].eq("none").all()
+assert bg["view"].eq(bg["mode"]).all()
+assert bg.x_px.between(big_cx - BALLOON_MAX_W / 2, big_cx + BALLOON_MAX_W / 2).all()   # stays centered on one column
+assert bg.y_px.between(BODY_TOP, BODY_BOTTOM).all()    
      
 mexico = PLACES[PLACES["Location"] == "New Mexico"].iloc[0]
 for who in (ohio, mexico):
