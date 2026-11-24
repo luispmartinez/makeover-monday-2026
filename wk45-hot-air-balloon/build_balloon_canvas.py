@@ -523,11 +523,11 @@ BTN_LINE = 1
 for mode, label, x0, w in BUTTONS:
     other = "count" if mode == "pct" else "pct"
     rect(f"strip_btn_{mode}_inactive_outline", x0, STRIP_TOP, x0 + w, STRIP_BOTTOM, "strip",
-         color=HEX["btn_inactive_outline"], mode=mode, view= other, when="always")
+         color=HEX["btn_inactive_outline"], mode=mode, view= other, when="always", click = mode)
     rect(f"strip_btn_{mode}_inactive_bg", x0 + BTN_LINE, STRIP_TOP + BTN_LINE, x0 + w - BTN_LINE, STRIP_BOTTOM - BTN_LINE, "strip",
-         color=HEX["btn_inactive_bg"], mode=mode, view=other, when="always")
+         color=HEX["btn_inactive_bg"], mode=mode, view=other, when="always", click = mode)
     glyph_rows(BARLOW, f"strip_btn_{mode}_inactive_text", label, x0 + w / 2, btn_base, BTN_PX, "strip",
-               align="center", color=HEX["btn_inactive_text"], mode=mode, view=other, when="always")
+               align="center", color=HEX["btn_inactive_text"], mode=mode, view=other, when="always", click = mode)
 bi = pd.DataFrame(rows)
 bi = bi[bi.poly_id.str.contains("_inactive")]
 assert (bi["view"] != bi["mode"]).all()
@@ -543,9 +543,12 @@ assert st["when"].isin(["always", "none", "selected"]).all()
 off = st[st["view"] != st["mode"]]
 assert off.poly_id.str.contains("inactive").all()
 cl = pd.DataFrame(rows)
+cl = pd.DataFrame(rows)
 assert "click" in cl.columns
 assert cl["click"].notna().all()
-assert cl["click"].eq("none").all()
+nz = cl[cl["click"] != "none"]
+assert nz.poly_id.str.contains("_inactive").all()        # only the inactive buttons are clickable so far
+assert nz["click"].eq(nz["mode"]).all()             # and each one switches to its own mode
 
 CARD_SHADOW, CARD_LINE = 4, 2
 CARD_TOP, CARD_BOTTOM = BODY_TOP, BODY_BOTTOM
@@ -590,9 +593,9 @@ assert hit_x0 > CARD_X0 + CARD_LINE and hit_y1 < CARD_BOTTOM
 
 for mode in ("count", "pct"):
     rect(f"card_hit_{mode}", hit_x0, hit_y0, hit_x1, hit_y1, "closebtn",
-         color=HEX["card_hit"], mode=mode, view=mode, when="selected", place="none")
+         color=HEX["card_hit"], mode=mode, view=mode, when="selected", place="none", click = "close")
     glyph_rows(BARLOW, f"card_close_{mode}", CLOSE, hit_x1 - CLOSE_PAD, close_base, CLOSE_PX, "closebtn",
-               align="right", color=HEX["card_close"], mode=mode, view=mode, when="selected", place="none")
+               align="right", color=HEX["card_close"], mode=mode, view=mode, when="selected", place="none", click = "close")
 
 hc = pd.DataFrame(rows)
 hc = hc[hc.poly_id.str.contains("card_close")]
@@ -716,7 +719,8 @@ assert len(sh) > 0
 assert sh["when"].eq("selected").all()
 assert sh["place"].eq("none").all()
 assert sh["view"].eq(sh["mode"]).all()
-assert sh["click"].eq("none").all()
+assert sh.loc[sh["layer"] == "cardframe", "click"].eq("none").all()      # the frame stays inert
+assert sh.loc[sh["layer"] == "close_btn", "click"].eq("close").all()             # the Close hit area and its text close the card
 
 assert len(ct) > 0
 assert ct["place"].ne("none").all()
