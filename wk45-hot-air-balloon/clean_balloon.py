@@ -6,9 +6,10 @@ import pandas as pd
 from clean_toolkit import clean_text, split_range, top_repeated, write_clean
 
 # 0. Config
-INPUT_PATH     = Path(__file__).parent / "drop" / "hot_air_balloon.xlsx"
+INPUT_PATH     = Path(__file__).parent / "raw" / "hot_air_balloon.xlsx"
 OUTPUT_FOLDER  = "~/TableauData/hot-air-balloon"             # CHANGE ME
 SET_ASIDE_FOLDER = Path(__file__).parent / "set_aside"          # the week's folder, from the script's own location
+DROP_FOLDER    = Path(__file__).parent / "drop"        # scanner input: clean file only
 OUTPUT_FILE    = "balloon_clean.csv"
 CLEAN_EXCLUDE  = ("BalloonID", "Name", "Registration", "Model", "SerialNumber")           # columns clean_text must leave alone (IDs, URLs?)
 EXPECTED_RAW   = 7934                            # from my read; confirm on your first run
@@ -36,7 +37,6 @@ d   = cleaned[~is_odd]                                    # the rows kept
 print("blank:", is_blank_row.sum(), "| url:", is_url_row.sum(), "| kept:", len(d))
 assert len(d) + len(odd) == EXPECTED_RAW, "rows lost in the split"
 write_clean(odd, SET_ASIDE_FOLDER, "balloon_set_aside.csv")
-
 # 4. Duplicates: expect none left
 assert len(d) > 0, "no rows kept"
 assert not d["Name"].str.startswith("http", na=False).any(), "URL rows left in Name"
@@ -85,3 +85,5 @@ assert d["year_built"].dropna().between(YEAR_MIN, YEAR_MAX).all(), "implausible 
 # 8. Write
 path = write_clean(d, OUTPUT_FOLDER, OUTPUT_FILE)
 print("wrote", path)
+path_drop = write_clean(d, DROP_FOLDER, OUTPUT_FILE)
+print("wrote", path_drop)
