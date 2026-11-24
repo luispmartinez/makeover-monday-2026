@@ -1052,9 +1052,23 @@ print(list(atl.columns))
 
 COLUMNS = ["layer", "poly_id", "point_order", "lat", "lon", "color", "mode", "view", "when", "place", "click"]
 out = pd.concat([canvas[COLUMNS], tiny[COLUMNS]], ignore_index=True)
+z_by_color = z_table.groupby("color")["z"].max()
+out["z"] = out["color"].map(z_by_color)
+assert out["z"].notna().all()
 assert not out.duplicated(subset=["mode", "poly_id", "point_order"]).any()
 assert out[["mode", "view", "when", "place", "click"]].notna().all().all()
 write_atomic(OUT / "balloon_canvas.csv", out.to_csv(index=False))
 
 check = pd.read_csv(OUT / "balloon_canvas.csv", dtype={"color": str})
 pd.testing.assert_frame_equal(check, out, check_exact=False, rtol=1e-9)
+colors = sorted(out["color"].unique())
+assert len(colors) == 43
+items = "\n".join(f"      <color>#{c}</color>" for c in colors)
+titems = "\n".join(f"    <color>#{c}</color>" for c in colors)
+tps = f"""  <color-palette custom='true' name='Balloon' type='regular'>
+{items}
+  </color-palette>
+"""
+write_atomic(OUT / "balloon_palette.tps", tps)
+maps = "\n".join(f"            <map to='#{c.lower()}'>\n              <bucket>&quot;{c}&quot;</bucket>\n            </map>" for c in colors)
+write_atomic(OUT / "balloon_color_map.xml", maps)
