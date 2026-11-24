@@ -405,6 +405,33 @@ glyph_rows(BARLOW, "credit_lead", CREDIT_LEAD, credit_right - name_w - 4, lead_b
 cr = pd.DataFrame(rows); cr = cr[cr.poly_id.str.contains(":credit_")]
 assert cr.poly_id.str.contains("credit_shadow").sum() == cr.poly_id.str.contains("credit_name").sum() > 0
 assert cr.y_px.between(H_PX - FOOTER_H, H_PX).all() and cr.x_px.between(MARGIN, W - MARGIN).all()
+cap_h = FOOT_PX * BARLOW.cap
+glyph_h = cap_h * 1.2
+LEG_W   = glyph_h/BALLOON_ASPECT                      # glyph width, px; height is 1.4 times it
+LEG_GAP = .5 * FOOT_PX                      # glyph to its text
+LEG_SEP = 2 * FOOT_PX                      # between the two items
+LEG_1, LEG_2 = "One balloon, seen in person", "One balloon, not seen"
+
+leg_mid = foot_base1 - FOOT_PX * BARLOW.cap / 2      # the text's vertical center
+leg_y   = leg_mid - glyph_h/2                                        # glyph top, so its center sits on leg_mid
+leg_x1  = STREAM_X0                                        # where item 1 starts
+balloon("legend_lit", leg_x1, leg_y, LEG_W, "text", color=HEX["balloon_lit"])
+glyph_rows(BARLOW, "legend_1", LEG_1, leg_x1 + LEG_W + LEG_GAP, foot_base1, FOOT_PX, "text", color=HEX["head_grey"])
+leg_x2  = leg_x1 + LEG_W + LEG_GAP + BARLOW.width(LEG_1, FOOT_PX) + LEG_SEP
+leg_right = leg_x2 + LEG_W + LEG_GAP + BARLOW.width(LEG_2, FOOT_PX)
+# same three lines for item 2, using the dim color
+balloon("legend_dim", leg_x2, leg_y, LEG_W, "text", color=HEX["balloon_dim"])
+glyph_rows(BARLOW, "legend_2", LEG_2, leg_x2 + LEG_W + LEG_GAP, foot_base1, FOOT_PX, "text", color=HEX["head_grey"])
+
+legend = pd.DataFrame(rows)
+
+legend = legend[legend.poly_id.str.contains("legend_")]
+
+assert len(legend) > 0
+assert leg_x1 > MARGIN + BARLOW.width(FOOT_1, FOOT_PX)
+assert leg_right <= W - MARGIN
+assert legend.y_px.between(H_PX - FOOTER_H, H_PX).all()
+assert legend.x_px.between(MARGIN,W - MARGIN).all()
 
 # 4e  sparkles, positioned from the header's measured width
 title_w   = SHRIKHAND.width(HEADLINE_TEXT, TITLE_PX)
@@ -979,7 +1006,7 @@ used    = set(cv["color"])
 stacked = {hex_ for name, hex_ in STACK}
 assert used <= stacked                              # every drawn color has a level
 
-assert stacked - used == {HEX["balloon_dim"], HEX["balloon_lit"]}     # only the tiny balloons live outside the canvas     
+assert stacked - used == set()       
 
 layout = []
 for mode in ("pct", "count"):
