@@ -123,12 +123,12 @@ ROW_H = (BODY_BOTTOM - BODY_TOP) / N_ROWS
 assert ROW_H == 54
 
 BALLOON_ASPECT = 1.4                          # height / width, as in the sketch
-ROW_PAD = 8                                # px of air above and below the big balloon
+ROW_PAD = 3                                # px of air above and below the big balloon
 BALLOON_MAX_H = ROW_H - 2 * ROW_PAD
 BALLOON_MAX_W = BALLOON_MAX_H / BALLOON_ASPECT
 assert BALLOON_MAX_H < ROW_H
-assert round(BALLOON_MAX_H) == 38
-assert round(BALLOON_MAX_W, 2) == 27.14
+assert round(BALLOON_MAX_H) == 48
+assert round(BALLOON_MAX_W, 2) == 34.29
 
 
 
