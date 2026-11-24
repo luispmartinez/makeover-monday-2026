@@ -911,15 +911,15 @@ for mode in MODES:
         level   = medal_level(mode, r, p)
         ring_w  = w + 2 * BIG_STROKE * w / 100
         big_balloon(f"big_ring_{mode}_{r}", big_cx, row_mid, ring_w, "data",
-                    color=HEX[f"medal_ring_{level}"], mode=mode, view=mode, when="always", place="none")
+                    color=HEX[f"medal_ring_{level}"], mode=mode, view=mode, when="always", place="none", click=loc)
         big_balloon(f"big_{mode}_{r}", big_cx, row_mid, w, "data",
-                    color=HEX[f"medal_fill_{level}"], mode=mode, view=mode, when="always", place="none")
+                    color=HEX[f"medal_fill_{level}"], mode=mode, view=mode, when="always", place="none", click=loc )
         unit_poly(f"part_basket_{mode}_{r}", BASKET_UNIT, big_cx, row_mid, w, "data",
-                  color=HEX["basket"], mode=mode, view=mode, when="always", place="none")
+                  color=HEX["basket"], mode=mode, view=mode, when="always", place="none", click=loc)
         unit_poly(f"part_rope_l_{mode}_{r}", ROPE_L, big_cx, row_mid, w, "data",
-                  color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+                  color=HEX["rope"], mode=mode, view=mode, when="always", place="none", click=loc)
         unit_poly(f"part_rope_r_{mode}_{r}", ROPE_R, big_cx, row_mid, w, "data",
-                         color=HEX["rope"], mode=mode, view=mode, when="always", place="none")
+                         color=HEX["rope"], mode=mode, view=mode, when="always", place="none", click=loc)
         fx0  = big_cx + 0.1 * w                                 # the sketch's origin, a little right of center
         fy0  = row_mid + 0.43 * BALLOON_ASPECT * w                         # the sketch: 0.43 of the balloon's height below center
         fx1  = STREAM_X0 - 4                                  # the sketch ends 4 px before the stream
@@ -927,14 +927,14 @@ for mode in MODES:
         for k in range(lanes):
             fy1 = BODY_TOP + r * ROW_H + STREAM_PAD + k * cell_h + BALLOON_ASPECT * TINY_W / 2     # the middle of lane k's tiny balloon
             ribbon(f"fan_{mode}_{r}_{k}", (fx0, fy0), (fmid, fy0), (fmid, fy1), (fx1, fy1), FAN_HALF, FAN_STEPS, "data",
-                   color=HEX[FAN_COLOR[level]], mode=mode, view=mode, when="always", place="none")
+                   color=HEX[FAN_COLOR[level]], mode=mode, view=mode, when="always", place="none", click=loc)
         flag_key = "flag_dark" if level == 0 else "flag_light"        # dark on medals, light on unmedaled
         for i, pts in enumerate(FLAG_DASHES):
             unit_poly(f"part_flag_{mode}_{r}_{i}", pts, big_cx, row_mid, w, "data",
-                      color=HEX[flag_key], mode=mode, view=mode, when="always", place="none")
+                      color=HEX[flag_key], mode=mode, view=mode, when="always", place="none", click=loc)
         if level == 1:                      # the sparkle is for gold only
             unit_poly(f"part_spark_{mode}_{r}", SPARK_UNIT, big_cx, row_mid, w, "data",
-                      color=HEX["spark"], mode=mode, view=mode, when="always", place="none")
+                      color=HEX["spark"], mode=mode, view=mode, when="always", place="none", click=loc)
 
 bg = pd.DataFrame(rows)
 bg = bg[bg.poly_id.str.startswith("big_")]
@@ -942,6 +942,7 @@ assert len(bg) == 2 * len(MODES) * N_ROWS * len(BIG_UNIT)       # ring + fill, m
 assert bg.poly_id.nunique() == 40                   # one envelope per place per mode
 assert bg["when"].eq("always").all()
 assert bg["place"].eq("none").all()
+assert bg["click"].isin(PLACES["Location"]).all()
 assert bg["view"].eq(bg["mode"]).all()
 ring_max = BALLOON_MAX_W * (1 + 2 * BIG_STROKE / 100)       # the widest ring
 assert bg.x_px.between(big_cx - ring_max / 2, big_cx + ring_max / 2).all()
@@ -1051,8 +1052,7 @@ tiny["color"] = tiny["lit"].map({True: HEX["balloon_lit"], False: HEX["balloon_d
 tiny["poly_id"] = "tiny:" + tiny["mode"] + ":" + tiny["place"] + ":" + tiny["idx"].astype(str)
 tiny["layer"], tiny["view"], tiny["when"] = "data", tiny["mode"], "always"
 assert len(tiny) == 79442
-print(list(lay.columns))
-print(list(atl.columns))
+
 
 COLUMNS = ["layer", "poly_id", "point_order", "lat", "lon", "color", "mode", "view", "when", "place", "click"]
 out = pd.concat([canvas[COLUMNS], tiny[COLUMNS]], ignore_index=True)
