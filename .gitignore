@@ -28,7 +28,8 @@ set_aside/
 notes/
 preview*.png
 __pycache__/
-
+scratch_*.py
+toy_*.py
 wk42-us-pop/build_us_pop_canvas.py
 
 TIMELOG.md
