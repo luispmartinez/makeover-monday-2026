@@ -32,5 +32,4 @@ Minnesota's $104M in turkey exports, by destination. Ribbon thickness = dollars.
 - `clean_turkey.py` ... reads the fact sheet and writes one clean CSV per table
 - `build_turkey_canvas.py` ... builds the canvas: writes `turkey_canvas.csv`, `turkey_palette.tps` and `turkey_color_map.xml`
 - `turkey_color_map.xml` ... the 33 color entries to paste into the workbook's color encoding
-- `Minnesota_Turkey.twb` ... the Tableau workbook
 - `screenshots/` ... the dashboard preview used above
