@@ -4,6 +4,7 @@ Weekly Tableau Public dashboards built with a Python pipeline: Python decides, T
 
 | Week | Topic | Dashboard |
 |------|-------|-----------|
+| 46 | [Minnesota Turkeys](https://github.com/luispmartinez/makeover-monday-2026/tree/main/wk46-turkey) | [link](https://public.tableau.com/app/profile/luis.pablo6724/viz/MinnesotaTurkey/MinnesotaTurkeys) |
 | 45 | [Hot Air Balloons](https://github.com/luispmartinez/makeover-monday-2026/tree/main/wk45-hot-air-balloon) | [link](https://public.tableau.com/app/profile/luis.pablo6724/viz/HotAirBalloonMakeoverMonday/HotAirBalloons) |
 | 44 | [AI vs PISA](https://github.com/luispmartinez/makeover-monday-2026/tree/main/wk44-pisa-2025) | [link](https://public.tableau.com/app/profile/luis.pablo6724/viz/PISA2025AIUse/AIUseVsPISAScores) |
 | 43 | [Ultra Race](https://github.com/luispmartinez/makeover-monday-2026/tree/main/wk43-ultra-race) | [link](https://public.tableau.com/app/profile/luis.pablo6724/viz/UltraRace/UltraRace) |
